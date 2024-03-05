@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import Popup from "reactjs-popup";
 
 const StyledSearch = styled.main`
     display: flex;
@@ -35,6 +36,10 @@ const StyledSearch = styled.main`
         cursor: pointer;
     }
     
+    .popup-content {
+        
+    }
+
     thead {
         padding: 10px;
     }
@@ -43,10 +48,10 @@ const StyledSearch = styled.main`
 const Search = () => {
     const [searchInput, setSearchInput] = useState("");
 
+    //Example stuff
     const countries = [
         { name: "Belgium", continent: "Europe" },
         { name: "India", continent: "Asia" },
-        // Other countries...
     ];
 
     const handleChange = (e) => {
@@ -68,8 +73,18 @@ const Search = () => {
                     value={searchInput}
                 />
                 <br></br>
-                <button>Search</button>
-
+                <Popup trigger={<button>Search</button>} modal nested>
+                    {close => (
+                        <div className="modal">
+                            <div className="popup-content">
+                                INGREDIENTS:
+                            </div>
+                            <div>
+                                <button onClick={() => close()}>Exit</button>
+                            </div>
+                        </div>
+                    )}
+                </Popup>
                 <table className="searchExample">
                     <thead>
                         <tr>
@@ -94,3 +109,4 @@ const Search = () => {
 };
 
 export default Search;
+
