@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import Popup from "reactjs-popup";
+import 'reactjs-popup/dist/index.css';
 import bgImg from "../images/bg_image.jpeg";
 
 const StyledHome = styled.main`
@@ -77,6 +78,11 @@ const Search = () => {
                         </div>
                     )}
                 </Popup>
+                <div>
+                    <button>
+                        Advance Filter
+                    </button>
+                </div>
                 <table className="searchExample">
                     <thead>
                         <tr>
