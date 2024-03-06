@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import Logo from "../images/logo.jpeg";
 import styled from "styled-components";
 import Nav from "react-bootstrap/Nav";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -7,16 +9,18 @@ const StyledNavbar = styled.main`
     top: 0;
     position: fixed;
     width: 100vw;
-    background-color: black;
+    background-color: white;
 
-    .triviaLogo {
+    .foogleLogo {
         width: 40px;
         height: 40px;
     }
+    
     .nav {
         display: flex;
         align-items: center;
     }
+
     .link {
         background-image: linear-gradient(45deg, #f3ec78, crimson);
         -webkit-background-clip: text;
@@ -24,6 +28,7 @@ const StyledNavbar = styled.main`
         -webkit-text-fill-color: transparent;
         -moz-text-fill-color: transparent;
     }
+
     .link:hover {
         background-image: linear-gradient(45deg, gainsboro, #f3ec78);
         -webkit-background-clip: text;
@@ -58,10 +63,12 @@ const StyledNavbar = styled.main`
         display: flex;
         z-index: 999;
     }
+
     .modal-content button {
         margin: 0 auto;
         width: 200px;
     }
+
     .modal.hidden {
     display: block;
     }
@@ -72,17 +79,21 @@ function Navbar({ isHidden, toggleVisibility }) {
         <StyledNavbar>
             <Nav className="nav">
                 <Nav.Item>
-                    <Nav.Link>
-
+                    <Nav.Link href="/">
+                        <img src={Logo} alt="foogle_logo" className="foogleLogo"/>
                     </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
                     <Nav.Link className="link" onClick={toggleVisibility}>
-                        About Us
+                        <Link to="/login">
+                            Login
+                        </Link>
                     </Nav.Link>
                 </Nav.Item>
                 <Nav.Item className="link" onClick={toggleVisibility}>
-                    How to Use
+                    <Link to="/register">
+                        Register
+                    </Link>
                 </Nav.Item>
             </Nav>
         </StyledNavbar>
