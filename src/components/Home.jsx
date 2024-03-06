@@ -1,11 +1,17 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import Popup from "reactjs-popup";
+import Checkbox from '@mui/material/Checkbox';
+import Box from '@mui/material/Box';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormHelperText from '@mui/material/FormHelperText';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
 import 'reactjs-popup/dist/index.css';
 import bgImg from "../images/bg_image.jpeg";
 
 const StyledHome = styled.main`
-
     box-sizing: border-box;
     background: url(${bgImg});
     background-attachment: fixed;
@@ -25,10 +31,17 @@ const StyledHome = styled.main`
         color: white;
         margin-bottom: 20px;
     }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
 `;
 
 const StyledSearch = styled.div`
-    .searchExample{
+    .searchExample {
         margin-top: 30px;
         display: flex;
         flex-direction: column;
@@ -40,6 +53,9 @@ const StyledSearch = styled.div`
 
 const Search = () => {
     const [searchInput, setSearchInput] = useState("");
+    const [Vegan, setVegan] = useState(false);
+    const [Vegitarian, setVegitarian] = useState(false);
+    const [Kosher, setKosher] = useState(false);
 
     // Example data
     const countries = [
@@ -50,10 +66,6 @@ const Search = () => {
     const handleChange = (e) => {
         setSearchInput(e.target.value);
     };
-
-    let filteredCountries = countries.filter((country) => {
-        return country.name.toLowerCase().includes(searchInput.toLowerCase());
-    });
 
     return (
         <StyledSearch>
@@ -73,16 +85,43 @@ const Search = () => {
                                 INGREDIENTS:
                             </div>
                             <div>
-                                <button onClick={() => close()}>Exit</button>
+                                <button onClick={close}>Exit</button>
                             </div>
                         </div>
                     )}
                 </Popup>
-                <div>
-                    <button>
-                        Advance Filter
-                    </button>
-                </div>
+                <Popup trigger={<button>Advance Filter</button>} modal nested>
+                    {close => (
+                        <div className="modal">
+                            <div className="popup-content">
+                                Dietary Restrictions:
+                                <Box sx={{ display: 'flex' }}>
+                                    <FormControl component="fieldset">
+                                        <FormLabel component="legend">Dietary Restrictions</FormLabel>
+                                        <FormGroup>
+                                            <FormControlLabel
+                                                control={<Checkbox checked={Vegan} onChange={() => setVegan(!Vegan)} name="Vegan" />}
+                                                label="Vegan"
+                                            />
+                                            <FormControlLabel
+                                                control={<Checkbox checked={Vegitarian} onChange={() => setVegitarian(!Vegitarian)} name="Vegitarian" />}
+                                                label="Vegetarian"
+                                            />
+                                            <FormControlLabel
+                                                control={<Checkbox checked={Kosher} onChange={() => setKosher(!Kosher)} name="Kosher" />}
+                                                label="Kosher"
+                                            />
+                                        </FormGroup>
+                                        <FormHelperText>Select your Diet!</FormHelperText>
+                                    </FormControl>
+                                </Box>
+                            </div>
+                            <div>
+                                <button onClick={close}>Apply</button>
+                            </div>
+                        </div>
+                    )}
+                </Popup>
                 <table className="searchExample">
                     <thead>
                         <tr>
@@ -91,7 +130,7 @@ const Search = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredCountries.map((country, index) => (
+                        {countries.map((country, index) => (
                             <tr key={index}>
                                 <td>{country.name}</td>
                                 <td>{country.continent}</td>
