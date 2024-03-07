@@ -10,6 +10,8 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import 'reactjs-popup/dist/index.css';
 import bgImg from "../images/bg_image.jpeg";
+import { Link } from "react-router-dom";
+
 
 const StyledHome = styled.main`
     box-sizing: border-box;
@@ -78,18 +80,11 @@ const Search = () => {
                     value={searchInput}
                 />
                 <br />
-                <Popup trigger={<button>Search</button>} modal nested>
-                    {close => (
-                        <div className="modal">
-                            <div className="popup-content">
-                                INGREDIENTS:
-                            </div>
-                            <div>
-                                <button onClick={close}>Exit</button>
-                            </div>
-                        </div>
-                    )}
-                </Popup>
+                <Link to="/result">
+                    <button>
+                        Search
+                    </button>
+                </Link>
                 <Popup trigger={<button>Advance Filter</button>} modal nested>
                     {close => (
                         <div className="modal">
