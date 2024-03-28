@@ -36,7 +36,7 @@ app.post("/register", async(req, res) => {
         request.input("email", sql.NVarChar, email);
         request.input("password", sql.NVarChar, password);
         request.input("diet", sql.NVarChar, diet);
-        
+
         const result = await request.query(insertQuery);
 
         console.log("Data inserted into MSSQL database successfully: ", result);
@@ -46,5 +46,33 @@ app.post("/register", async(req, res) => {
     catch(error){
         console.log("Error registering: ", error);
         res.sendStatus(500);
+    }
+});
+
+//LOGIN
+app.post("/login", async (req, res) => {
+    try{
+        await sql.connect(config);
+
+        const request = new sql.Request();
+
+        const sqlQurey = `SELECT * FROM Users WHERE Username = @username AND password = @password`;
+
+        request.input("username", sql.NVarChar, req.body.username);
+        request.input("password", sql.NVarChar, req.body.password);
+
+        const result = await request.query(sqlQurey);
+
+        if(result.recordset.length > 0){
+            res.json({ status: "success", data: result.recondset[0]});
+        }
+        else{
+            res.json({ status: "failure", message: "Invalid Username or Password"});
+        }
+    }
+    catch(error){
+        console.error("Error during login:", error);
+        res.sendStatus(500);
+        res.status(500).send("Login failed due to an internal error");
     }
 });
