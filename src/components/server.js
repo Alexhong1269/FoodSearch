@@ -8,12 +8,12 @@ app.use(express.json());
 
 const config = {
     user: "acohorst1",
-    password: "",
-    server: "",
-    database: "",
+    password: "software2024!",
+    server: "movietrivia.database.windows.net",
+    database: "DataBase",
     pool:{
-        max: 
-        min: 
+        max: 10, 
+        min: 0, 
         idleTimeoutMillis: 3000,
     },
     options: {
@@ -24,10 +24,27 @@ const config = {
 
 //Register page
 app.post("/register", async(req, res) => {
-    const userRef = userRef();
-    const errRef = useRef();
+    const{ username, email, password, diet} = req.body
+    
+    try{
+        await sql.connect(config);
+        const insertQuery = `
+            INSERT INTO Users (Username, Email, Password, Diet) 
+            VALUES (@username, @email, @password, @diet, 0)
+        `;
+        request.input("username", sql.NVarChar, username);
+        request.input("email", sql.NVarChar, email);
+        request.input("password", sql.NVarChar, password);
+        request.input("diet", sql.NVarChar, diet);
+        
+        const result = await request.query(insertQuery);
 
-    const [user, setUser] = useState("");
-    const [ValidUserName, setValidUserName] = useState("false");
+        console.log("Data inserted into MSSQL database successfully: ", result);
 
+        res.sendStatus(200);
+    }
+    catch(error){
+        console.log("Error registering: ", error);
+        res.sendStatus(500);
+    }
 });
