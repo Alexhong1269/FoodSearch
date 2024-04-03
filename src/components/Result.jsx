@@ -30,7 +30,10 @@ const StyledResult = styled.main`
     }
 `;
 
-function Result() {
+function Result({location}) {
+
+    const { searchData } = location.state;
+
     return(
         <StyledResult>
             <h1>Recipe Results</h1>
@@ -44,13 +47,14 @@ function Result() {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Recipe Name</td>
-                        <td>Prep Time</td>
-                        <td>Cook Time</td>
-                        <td>Description</td>
-                    </tr>
-                    
+                    {searchData.map((recipe, index) => (
+                        <tr key={index}>
+                            <td>{recipe.name}</td>
+                            <td>{recipe.prepTime}</td>
+                            <td>{recipe.cookTime}</td>
+                            <td>{recipe.description}</td>
+                        </tr>
+                    ))}  
                 </tbody>
             </table>
             <Link to="/">Go Back</Link>
