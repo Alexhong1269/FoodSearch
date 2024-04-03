@@ -10,7 +10,8 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import 'reactjs-popup/dist/index.css';
 import bgImg from "../images/bg_image.jpeg";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
+import axios from 'axios';
 
 
 const StyledHome = styled.main`
@@ -58,8 +59,9 @@ const Search = () => {
     const [Vegan, setVegan] = useState(false);
     const [Vegeitarian, setVegeitarian] = useState(false);
     const [Kosher, setKosher] = useState(false);
+    const history = useHistory();
 
-    // Example data
+    // Example data(we can delete this later)
     const countries = [
         { name: "Belgium", continent: "Europe" },
         { name: "India", continent: "Asia" },
@@ -68,6 +70,11 @@ const Search = () => {
     const handleChange = (e) => {
         setSearchInput(e.target.value);
     };
+
+    const handelSearch = () => {
+        //push the user to the results page and find the food the user is looking for with the diet restrictions
+        history.push(`/result?query={searchInput}&vegan=${Vegan}&vegetarian=${Vegetarian}&kosher=${Kosher}`);
+    }
 
     return (
         <StyledSearch>
@@ -80,11 +87,7 @@ const Search = () => {
                     value={searchInput}
                 />
                 <br />
-                <Link to="/result">
-                    <button>
-                        Search
-                    </button>
-                </Link>
+                <button onClick={handelSearch}>Search</button>
                 <Popup trigger={<button>Advance Filter</button>} modal nested>
                     {close => (
                         <div className="modal">
