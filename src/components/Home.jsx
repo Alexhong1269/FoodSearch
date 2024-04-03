@@ -71,10 +71,21 @@ const Search = () => {
         setSearchInput(e.target.value);
     };
 
-    const handelSearch = () => {
-        //push the user to the results page and find the food the user is looking for with the diet restrictions
-        history.push(`/result?query={searchInput}&vegan=${Vegan}&vegetarian=${Vegetarian}&kosher=${Kosher}`);
-    }
+    const handleSearch = async () => {
+        try {
+            // Make a request to your backend server to fetch data based on the search query and dietary restrictions
+            const response = await axios.get(`/search?query=${searchInput}&vegan=${Vegan}&vegetarian=${Vegetarian}&kosher=${Kosher}`);
+            
+            // If data is fetched successfully, navigate to the results page
+            history.push({
+                pathname: "/result",
+                state: { searchData: response.data } // Pass fetched data to the results page via location state
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            // Handle error
+        }
+    };
 
     return (
         <StyledSearch>
