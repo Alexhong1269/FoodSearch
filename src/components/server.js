@@ -1,4 +1,4 @@
-import express from "express";
+import express, { request } from "express";
 import sql from "mssql";
 import cors from "cors";
 
@@ -49,7 +49,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// LOGIN
+// Login Page
 app.post("/login", async (req, res) => {
   try {
     await sql.connect(config);
@@ -72,6 +72,42 @@ app.post("/login", async (req, res) => {
     console.error("Error during login:", error);
     res.status(500).json({ status: "failure", message: "Login failed due to an internal error" });
   }
+});
+
+//Search Page
+app.get("/search", async(req, res) => {
+  const { query, vegan, vegtarian, kosher } = res.query;
+
+  try{
+    await sql.connect(config);
+    const request = new sql.Request();
+
+    let searchQuery = `
+      SELECT * 
+      FROM Recipes
+      WHERE GeneralName LIKE '%${query}$%'
+    `;
+
+    //adding dietary restrictions if provided
+    if(vegan === 'true'){
+      searchQuery += ` AND Vegan = 1`;
+    }
+    if(vegetarian === 'true'){
+      searchQuery += `AND Vegetarian = 1`;
+    }
+    if(kosher === 'true'){
+      searchQuery += `AND Kosher = 1`;
+    }
+
+    const result = await request.query(searchQuery);
+
+    res.json(result.recordset);
+  }
+  catch(error){
+    console.log("Error during search:", error);
+    res.status(500).json({status: "failure", message: "search failed due to internal error"});
+  }
+
 });
 
 app.listen(3000, () => {

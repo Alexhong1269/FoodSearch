@@ -56,7 +56,7 @@ const StyledSearch = styled.div`
 const Search = () => {
     const [searchInput, setSearchInput] = useState("");
     const [Vegan, setVegan] = useState(false);
-    const [Vegitarian, setVegitarian] = useState(false);
+    const [Vegeitarian, setVegeitarian] = useState(false);
     const [Kosher, setKosher] = useState(false);
 
     // Example data
@@ -99,7 +99,7 @@ const Search = () => {
                                                 label="Vegan"
                                             />
                                             <FormControlLabel
-                                                control={<Checkbox checked={Vegitarian} onChange={() => setVegitarian(!Vegitarian)} name="Vegitarian" />}
+                                                control={<Checkbox checked={Vegeitarian} onChange={() => setVegeitarian(!Vegeitarian)} name="Vegeitarian" />}
                                                 label="Vegetarian"
                                             />
                                             <FormControlLabel
