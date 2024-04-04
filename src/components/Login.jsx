@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import axios from "../api/axios";
+import { useUser } from "./userContext";
 
 
 const StyledLogin = styled.main`
@@ -98,7 +99,20 @@ function Login({isHidden}) {
     };
 
     return(
-        <StyledLogin>
+        <>
+        {success ? (
+            <StyledLogin isHidden={isHidden}>
+                <div className="login-success">
+                    <h1>
+                        Welcom <span className="username_display">{user}</span>
+                    </h1>
+                    <Link to="/home" className="login-success-member member">
+                        Start Search
+                    </Link>
+                </div>
+            </StyledLogin>
+        ) : (
+            <StyledLogin>
             <div className = "logo_container">
                 <h1>Food Search</h1>
                 <form>
@@ -133,13 +147,16 @@ function Login({isHidden}) {
                         <br></br>
                     </div>
                     <div className="button_container">
-                        <Link to="/search">
-                            <button type="submit">Login</button>
+                        <button type="submit">Sign In</button>
+                        <Link to="/register" className="member">
+                            No Account?
                         </Link>
                     </div>
                 </form>
             </div>
         </StyledLogin>
+        )}
+        </ >
     );
 }
 
