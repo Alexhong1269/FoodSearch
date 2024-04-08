@@ -96,7 +96,7 @@ function Register({isHidden}) {
         console.log(result);
         console.log(pwd)
         setValidPwd(result);
-        const match = pwd === match.pwd;
+        const match = pwd === matchPwd;
         setValidMatch(match);
     }, [pwd, matchPwd]);
 
@@ -204,7 +204,7 @@ function Register({isHidden}) {
                         <input
                             required
                             id="username"
-                            autocomplete="off"
+                            autoComplete="off"
                             placeholder="Please enter username"
                             type = "text"
                             ref = {userRef}
@@ -258,7 +258,7 @@ function Register({isHidden}) {
                                 value = {pwd}
                                 onChange = {(e) => setPwd(e.target.value)}
                                 aria-invalid={validPwd ? "false" : "true"}
-                                aria-desvribedby="pwdnote"
+                                aria-describedby="pwdnote"
                                 onFocus = {() => setPwdFocus(true)}
                                 onBlur = {() => setPwdFocus(false)}
                             />
