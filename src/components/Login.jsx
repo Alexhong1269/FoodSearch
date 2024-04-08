@@ -103,7 +103,7 @@ function Login({isHidden}) {
             <StyledLogin isHidden={isHidden}>
                 <div className="login-success">
                     <h1>
-                        Welcom <span className="username_display">{user}</span>
+                        Welcome <span className="username_display">{user}</span>
                     </h1>
                     <Link to="/home" className="login-success-member member">
                         Start Search
@@ -114,7 +114,15 @@ function Login({isHidden}) {
             <StyledLogin>
             <div className = "logo_container">
                 <h1>Food Search</h1>
-                <form>
+                <h1>Sign In</h1>
+                    <p
+                        ref={errRef}
+                        className={errMsg ? "errmsg" : "offscreen"}
+                        aria-live="assertive"
+                    >
+                        {errMsg}
+                    </p>
+                <form action="" onSubmit={handleSubmit}>
                     <div>
                         <label htmlFor = "username" id = "UserText">Username:
                             <input
