@@ -76,7 +76,7 @@ app.post("/login", async (req, res) => {
 
 //Search Page
 app.get("/search", async(req, res) => {
-  const { query, vegan, vegetarian, kosher } = res.query;
+  const { query, vegan, vegetarian, kosher } = req.query;
 
   try{
     await sql.connect(config);

@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import axios from "../api/axios";
-import { useUser } from "./userContext";
 
 
 const StyledLogin = styled.main`
@@ -63,7 +62,7 @@ function Login({isHidden}) {
         e.preventDefault();
 
         try{
-            const reponse = await axios.post(
+            const response = await axios.post(
                 LOGIN_URL,
                 JSON.stringify({username: user, password: pwd}),
                 {

@@ -10,7 +10,7 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import 'reactjs-popup/dist/index.css';
 import bgImg from "../images/bg_image.jpeg";
-import { Link, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import axios from 'axios';
 
 
@@ -73,19 +73,34 @@ const Search = () => {
 
     const handleSearch = async () => {
         try {
-            // Make a request to your backend server to fetch data based on the search query and dietary restrictions
-            const response = await axios.get(`/search?query=${searchInput}&vegan=${Vegan}&vegetarian=${Vegetarian}&kosher=${Kosher}`);
-            
-            // If data is fetched successfully, navigate to the results page
-            history.push({
-                pathname: "/result",
-                state: { searchData: response.data } // Pass fetched data to the results page via location state
-            });
+            // Only navigate to the results page if a search query is entered
+            if (searchInput.trim() !== "") {
+                const response = await axios.get(`/search?query=${searchInput}&vegan=${Vegan}&vegetarian=${Vegetarian}&kosher=${Kosher}`);
+                
+                history.push({
+                    pathname: "/result",
+                    state: { searchData: response.data }
+                });
+            }
         } catch (error) {
             console.error("Error fetching data:", error);
             // Handle error
         }
     };
+
+    const handelApplyFilters = async () => {
+        try {
+            // Perform the search with applied filters but don't navigate to the results page
+            await axios.get(`/search?query=${searchInput}&vegan=${Vegan}&vegetarian=${Vegetarian}&kosher=${Kosher}`);
+                    
+            // Optionally, you can display a message to the user indicating that filters have been applied
+            console.log("Filters applied successfully!");
+        } catch (error) {
+            console.error("Error applying filters:", error);
+            // Handle error
+        }
+    };
+    
 
     return (
         <StyledSearch>
@@ -98,7 +113,7 @@ const Search = () => {
                     value={searchInput}
                 />
                 <br />
-                <button onClick={handelSearch}>Search</button>
+                <button onClick={handleSearch}>Search</button>
                 <Popup trigger={<button>Advance Filter</button>} modal nested>
                     {close => (
                         <div className="modal">
@@ -126,7 +141,8 @@ const Search = () => {
                                 </Box>
                             </div>
                             <div>
-                                <button onClick={close}>Apply</button>
+                                <button onClick={handelApplyFilters}>Apply</button>
+                                <button onClick={close}>Close</button>
                             </div>
                         </div>
                     )}
