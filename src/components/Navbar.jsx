@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import Logo from "../images/logo.jpeg";
 import styled from "styled-components";
@@ -79,16 +79,14 @@ function Navbar({ isHidden, toggleVisibility }) {
         <StyledNavbar>
             <Nav className="nav">
                 <Nav.Item>
-                    <Nav.Link href="/">
+                    <Link to="/">
                         <img src={Logo} alt="foogle_logo" className="foogleLogo"/>
-                    </Nav.Link>
+                    </Link>
                 </Nav.Item>
-                <Nav.Item>
-                    <Nav.Link className="link" onClick={toggleVisibility}>
-                        <Link to="/login">
-                            Login
-                        </Link>
-                    </Nav.Link>
+                <Nav.Item className="link" onClick={toggleVisibility}>
+                    <Link to="/login">
+                        Login
+                    </Link>
                 </Nav.Item>
                 <Nav.Item className="link" onClick={toggleVisibility}>
                     <Link to="/register">

@@ -10,7 +10,7 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import 'reactjs-popup/dist/index.css';
 import bgImg from "../images/bg_image.jpeg";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 
 
@@ -57,9 +57,9 @@ const StyledSearch = styled.div`
 const Search = () => {
     const [searchInput, setSearchInput] = useState("");
     const [Vegan, setVegan] = useState(false);
-    const [Vegeitarian, setVegeitarian] = useState(false);
+    const [Vegetarian, setVegetarian] = useState(false);
     const [Kosher, setKosher] = useState(false);
-    const history = useHistory();
+    const navigate = useNavigate();
 
     // Example data(we can delete this later)
     const countries = [
@@ -77,7 +77,7 @@ const Search = () => {
             if (searchInput.trim() !== "") {
                 const response = await axios.get(`/search?query=${searchInput}&vegan=${Vegan}&vegetarian=${Vegetarian}&kosher=${Kosher}`);
                 
-                history.push({
+                navigate({
                     pathname: "/result",
                     state: { searchData: response.data }
                 });
@@ -128,7 +128,7 @@ const Search = () => {
                                                 label="Vegan"
                                             />
                                             <FormControlLabel
-                                                control={<Checkbox checked={Vegeitarian} onChange={() => setVegeitarian(!Vegeitarian)} name="Vegeitarian" />}
+                                                control={<Checkbox checked={Vegetarian} onChange={() => setVegetarian(!Vegetarian)} name="Vegetarian" />}
                                                 label="Vegetarian"
                                             />
                                             <FormControlLabel
