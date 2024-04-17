@@ -357,6 +357,50 @@ app.post('/update-recipe', multer().none(), async (req, res) => {
 	}
 });
 
+// Delete a recipe
+app.delete('/delete-recipe/:recipeId', async (req, res) => {
+	const { recipeId } = req.params;
+
+	if (!recipeId) {
+		return res.status(400).send("Recipe ID is required.");
+	}
+
+	try {
+		let pool = await sql.connect(config);
+
+		// Begin transaction to ensure data integrity
+		const transaction = new sql.Transaction(pool);
+		await transaction.begin();
+
+		const deleteIngredients = `DELETE FROM RecipeIngredients WHERE RecipeID = @RecipeID`;
+		const deleteRatings = `DELETE FROM Ratings WHERE RecipeID = @RecipeID`;
+		const deleteInstructions = `DELETE FROM Instructions WHERE RecipeID = @RecipeID`;
+		const deleteRecipe = `DELETE FROM Recipes WHERE RecipeID = @RecipeID`;
+
+		try {
+			// Delete related data first
+			await transaction.request().input('RecipeID', sql.Int, recipeId).query(deleteIngredients);
+			await transaction.request().input('RecipeID', sql.Int, recipeId).query(deleteRatings);
+			await transaction.request().input('RecipeID', sql.Int, recipeId).query(deleteInstructions);
+
+			// Finally, delete the recipe
+			await transaction.request().input('RecipeID', sql.Int, recipeId).query(deleteRecipe);
+
+			// Commit transaction
+			await transaction.commit();
+			res.send('Recipe deleted successfully!');
+		} catch (error) {
+			// Rollback transaction on error
+			await transaction.rollback();
+			console.error('Error during recipe deletion:', error);
+			res.status(500).send('Failed to delete recipe.');
+		}
+	} catch (err) {
+		console.error('Database connection failed:', err);
+		res.status(500).send('Database connection error.');
+	}
+});
+
 // Search ingredients on the build recipe page
 app.get('/ingredients', async (req, res) => {
 	

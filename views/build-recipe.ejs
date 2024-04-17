@@ -58,7 +58,9 @@
 								<option value="<%= unit %>" <%= unit === ingredient.Unit ? 'selected' : '' %>><%= unit %></option>
 							<% }); %>
 						</select>
-						<input type="text" class="ingredientSearch" placeholder="Search Ingredient" value="<%= ingredient.Name %>" data-id="<%= ingredient.IngredientID %>">
+						<div class="input-wrapper">
+							<input type="text" class="ingredientSearch" placeholder="Search Ingredient" value="<%= ingredient.Name %>" data-id="<%= ingredient.IngredientID %>">
+						</div>
 						<input type="text" class="ingredientText" placeholder="Describe Ingredient" value="<%= ingredient.IngredientText %>">
 						<button type="button" class="removeButton">Remove</button>
 					</div>
@@ -136,11 +138,24 @@
 				newRow.innerHTML = document.querySelector('.' + rowClass).innerHTML;
 				newRow.className = rowClass;
 				parentContainer.appendChild(newRow);
-				if (attachAutoComplete) {
+				
+				// Clear the values for the new row
+				newRow.querySelectorAll('input').forEach(input => {
+					if (input.type === 'text' || input.type === 'number') {
+						input.value = ''; // Reset text and number inputs
+					}
+				});
+				newRow.querySelectorAll('textarea').forEach(textarea => {
+					textarea.value = ''; // Reset textareas
+				});
+
+				if (attachAutoComplete && newRow.querySelector('.ingredientSearch')) {
 					attachAutocomplete(newRow.querySelector('.ingredientSearch'));
 				}
+
 				updateRemoveButtons(parentContainer, rowClass, newRow.querySelector('.removeButton') ? 'removeButton' : 'removeInstructionBtn');
 			}
+
 
 			function attachAutocomplete(searchInput) {
 				const resultsContainer = document.createElement('div');
