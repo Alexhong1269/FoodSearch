@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Foogle - Build Recipe</title>
+	<link rel="stylesheet" type="text/css" href="/style.css">
+</head>
+<body>
+	<%- include('partials/navigation') %>
+	
+	<h1>Recipe Builder</h1>
+	
+	<!-- Recipe form -->
+	<form id="recipeForm" action="/save-recipe" method="post">
+		<input type="hidden" name="recipeId" value="<%= recipe ? recipe.RecipeID : '' %>">
+		
+		<label for="title">Title:</label>
+		<input type="text" id="title" name="title" value="<%= recipe ? recipe.Title : '' %>" required>
+		<br><br>
+		
+		<label for="description">Description:</label>
+		<textarea id="description" name="description" required><%= recipe ? recipe.TextDesc : '' %></textarea>
+		<br><br>
+		
+		<label for="image">Image URL:</label>
+		<input type="url" id="image" name="image" value="<%= recipe ? recipe.Img : '' %>">
+		<br><br>
+		
+		<label for="prepTime">Prep Time (minutes):</label>
+		<input type="number" id="prepTime" name="prepTime" value="<%= recipe ? recipe.PrepTime : '' %>" min="0">
+		<br><br>
+		
+		<label for="cookTime">Cook Time (minutes):</label>
+		<input type="number" id="cookTime" name="cookTime" value="<%= recipe ? recipe.CookTime : '' %>" min="0">
+		<br><br>
+		
+		<label for="additionalTime">Additional Time (minutes):</label>
+		<input type="number" id="additionalTime" name="additionalTime" value="<%= recipe ? recipe.AdditionalTime : '' %>" min="0">
+		<br><br>
+		
+		<label for="servings">Servings:</label>
+		<input type="number" id="servings" name="servings" value="<%= recipe ? recipe.Servings : '' %>" min="1">
+		<br><br>
+		
+		<label for="yield">Yield:</label>
+		<input type="text" id="yield" name="yield" value="<%= recipe ? recipe.Yield : '' %>">
+		<br><br>
+		
+		<div id="ingredientsContainer">
+			<div class="ingredientRow">
+				<input type="number" class="ingredientQuantity" placeholder="Quantity" min="0">
+				<select class="ingredientUnit">
+					<option value="">-- Unit --</option>
+					<option value="bushels">bushels</option>
+					<option value="cups">cups</option>
+					<option value="fluid ounces">fluid ounces</option>
+					<option value="gallons">gallons</option>
+					<option value="grams">grams</option>
+					<option value="kilograms">kilograms</option>
+					<option value="liters">liters</option>
+					<option value="milliliters">milliliters</option>
+					<option value="ounces">ounces</option>
+					<option value="pints">pints</option>
+					<option value="pounds">pounds</option>
+					<option value="quarts">quarts</option>
+					<option value="tablespoons">tablespoons</option>
+					<option value="teaspoons">teaspoons</option>
+				</select>
+				<div class="input-wrapper">
+					<input type="text" class="ingredientSearch" placeholder="Search Ingredient">
+				</div>
+				<input type="text" class="ingredientText" placeholder="Describe Ingredient">
+				<button type="button" class="removeButton">Remove</button>
+			</div>
+		</div>
+		<button type="button" id="addIngredientBtn">Add Ingredient</button>
+		<br><br>
+		
+		<div id="instructionsContainer">
+			<div class="instructionRow">
+				<textarea class="instructionText" placeholder="Write step description here..."></textarea>
+				<button type="button" class="removeInstructionBtn">Remove</button>
+			</div>
+		</div>
+		<button type="button" id="addInstructionBtn">Add Step</button>
+		<br><br>
+		
+		<button type="submit">Save Recipe</button>
+	</form>
+	
+	<!-- JavaScript for dynamic elements and ingredient search -->
+	<script>
+		// Code for the ingredients (not the search)
+		document.addEventListener('DOMContentLoaded', function() {
+			const container = document.getElementById('ingredientsContainer');
+			document.getElementById('addIngredientBtn').addEventListener('click', addIngredientRow);
+			container.addEventListener('input', handleInput);
+			updateRemoveButtons();
+			
+			document.querySelectorAll('.ingredientSearch').forEach(input => attachAutocomplete(input));
+			
+			function addIngredientRow() {
+				const newRow = document.createElement('div');
+				newRow.innerHTML = document.querySelector('.ingredientRow').innerHTML;
+				newRow.className = 'ingredientRow';
+				container.appendChild(newRow);
+				updateRemoveButtons();
+				
+				const newSearchInput = newRow.querySelector('.ingredientSearch');
+				attachAutocomplete(newSearchInput);
+			}
+			
+			function attachAutocomplete(searchInput) {
+				const resultsContainer = document.createElement('div');
+				resultsContainer.className = 'autocomplete-results';
+				searchInput.parentNode.appendChild(resultsContainer);
+				
+				searchInput.addEventListener('input', function() {
+					const searchText = searchInput.value;
+					if (searchText.length > 1) {
+						fetch(`/ingredients?search=${encodeURIComponent(searchText)}`)
+							.then(response => response.json())
+							.then(data => {
+								resultsContainer.innerHTML = '';
+								data.forEach(ingredient => {
+									const div = document.createElement('div');
+									div.textContent = ingredient.Name;
+									div.setAttribute('data-id', ingredient.IngredientID);
+									div.onclick = function() {
+										searchInput.value = this.textContent;
+										resultsContainer.innerHTML = '';
+										const ingredientRow = searchInput.closest('.ingredientRow');
+										populateFields(ingredientRow);
+									};
+									resultsContainer.appendChild(div);
+								});
+							});
+					} else {
+						resultsContainer.innerHTML = '';
+					}
+				});
+				
+				document.addEventListener('click', function(event) {
+					if (!searchInput.contains(event.target) && !resultsContainer.contains(event.target)) {
+						resultsContainer.innerHTML = '';
+					}
+				});
+			}
+			
+			function updateRemoveButtons() {
+				const removeButtons = container.querySelectorAll('.removeButton');
+				removeButtons.forEach(button => {
+					button.style.display = container.querySelectorAll('.ingredientRow').length > 1 ? 'inline' : 'none';
+					button.onclick = () => removeRow(button);
+				});
+			}
+			
+			function removeRow(button) {
+				if (container.querySelectorAll('.ingredientRow').length > 1) {
+					button.closest('.ingredientRow').remove();
+					updateRemoveButtons();
+				}
+			}
+			
+			function handleInput(e) {
+				if (e.target.classList.contains('ingredientText')) {
+					return;
+				}
+				if (e.target.matches('.ingredientQuantity, .ingredientUnit, .ingredientSearch')) {
+					populateFields(e.target.closest('.ingredientRow'));
+				}
+			}
+			
+			function populateFields(row) {
+				const quantity = row.querySelector('.ingredientQuantity').value;
+				const unit = row.querySelector('.ingredientUnit').value;
+				const ingredient = row.querySelector('.ingredientSearch').value;
+				const combinedInput = row.querySelector('.ingredientText');
+				combinedInput.value = `${quantity} ${unit} ${ingredient}`;
+			}
+		});
+		
+		// Code for the instructions
+		document.addEventListener('DOMContentLoaded', function() {
+			const instructionsContainer = document.getElementById('instructionsContainer');
+			document.getElementById('addInstructionBtn').addEventListener('click', addInstructionRow);
+			updateInstructionRemoveButtons();
+			
+			function addInstructionRow() {
+				const newRow = document.createElement('div');
+				newRow.innerHTML = document.querySelector('.instructionRow').innerHTML;
+				newRow.className = 'instructionRow';
+				instructionsContainer.appendChild(newRow);
+				updateInstructionRemoveButtons();
+			}
+			
+			function updateInstructionRemoveButtons() {
+				const removeButtons = instructionsContainer.querySelectorAll('.removeInstructionBtn');
+				removeButtons.forEach(button => {
+					button.style.display = instructionsContainer.querySelectorAll('.instructionRow').length > 1 ? 'inline' : 'none';
+					button.onclick = () => removeInstructionRow(button);
+				});
+			}
+			
+			function removeInstructionRow(button) {
+				if (instructionsContainer.querySelectorAll('.instructionRow').length > 1) {
+					button.closest('.instructionRow').remove();
+					updateInstructionRemoveButtons();
+				}
+			}
+		});
+		
+		// Code for the ingredient search
+		document.addEventListener('DOMContentLoaded', function() {
+			document.querySelectorAll('.ingredientSearch').forEach(searchInput => {
+				const resultsContainer = document.createElement('div');
+				resultsContainer.className = 'autocomplete-results';
+				searchInput.parentNode.appendChild(resultsContainer);
+				
+				searchInput.addEventListener('input', function() {
+					const searchText = searchInput.value;
+					if (searchText.length > 1) {
+						fetch(`/ingredients?search=${encodeURIComponent(searchText)}`)
+							.then(response => response.json())
+							.then(data => {
+								resultsContainer.innerHTML = '';
+								data.forEach(ingredient => {
+									const div = document.createElement('div');
+									div.textContent = ingredient.Name;
+									div.setAttribute('data-id', ingredient.IngredientID);
+									div.onclick = function() {
+										searchInput.value = this.textContent;
+										resultsContainer.innerHTML = '';
+									};
+									resultsContainer.appendChild(div);
+								});
+							});
+					} else {
+						resultsContainer.innerHTML = '';
+					}
+				});
+				
+				document.addEventListener('click', function(event) {
+					if (!searchInput.contains(event.target) && !resultsContainer.contains(event.target)) {
+						resultsContainer.innerHTML = '';
+					}
+				});
+			});
+		});
+		
+		// Populate text box with selected ingredient
+		document.addEventListener('DOMContentLoaded', function() {
+			document.querySelectorAll('.ingredientSearch').forEach(function(searchInput) {
+				const resultsContainer = document.createElement('div');
+				resultsContainer.className = 'autocomplete-results';
+				searchInput.parentNode.appendChild(resultsContainer);
+				
+				searchInput.addEventListener('input', function() {
+					const searchText = searchInput.value;
+					if (searchText.length > 1) {
+						fetch(`/ingredients?search=${encodeURIComponent(searchText)}`)
+							.then(response => response.json())
+							.then(data => {
+								resultsContainer.innerHTML = '';
+								data.forEach(ingredient => {
+									const div = document.createElement('div');
+									div.textContent = ingredient.Name;
+									div.setAttribute('data-id', ingredient.IngredientID);
+									div.onclick = function() {
+										searchInput.value = this.textContent;
+										resultsContainer.innerHTML = '';
+										const ingredientRow = searchInput.closest('.ingredientRow');
+										populateFields(ingredientRow);
+									};
+									resultsContainer.appendChild(div);
+								});
+							});
+					} else {
+						resultsContainer.innerHTML = '';
+					}
+				});
+				
+				document.addEventListener('click', function(event) {
+					if (!searchInput.contains(event.target) && !resultsContainer.contains(event.target)) {
+						resultsContainer.innerHTML = '';
+					}
+				});
+			});
+			
+			function populateFields(row) {
+				const quantity = row.querySelector('.ingredientQuantity').value;
+				const unit = row.querySelector('.ingredientUnit').value;
+				const ingredient = row.querySelector('.ingredientSearch').value;
+				const combinedInput = row.querySelector('.ingredientText');
+				combinedInput.value = `${quantity} ${unit} ${ingredient}`;
+			}
+		});
+		
+		// Insert recipe into the database
+		
+		
+		// document.getElementById('recipeForm').addEventListener('submit', function(e) {
+		// 	e.preventDefault();
+		// 	const formData = new FormData(this);
+			
+		// 	console.log('begin');
+		// 	console.log(new FormData(this));
+		// 	console.log('end');
+			
+		// 	const ingredients = [];
+		// 	document.querySelectorAll('.ingredientRow').forEach((row) => {
+		// 		ingredients.push({
+		// 			quantity: row.querySelector('.ingredientQuantity').value,
+		// 			unit: row.querySelector('.ingredientUnit').value,
+		// 			text: row.querySelector('.ingredientText').value
+		// 		});
+		// 	});
+		// 	console.log(ingredients);
+			
+		// 	const instructions = [];
+		// 	document.querySelectorAll('.instructionText').forEach((textarea) => {
+		// 		instructions.push(textarea.value);
+		// 	});
+			
+		// 	formData.append('ingredients', JSON.stringify(ingredients));
+		// 	formData.append('instructions', JSON.stringify(instructions));
+			
+		// 	console.log(formData);
+			
+		// 	fetch(this.action, {
+		// 		method: 'POST',
+		// 		body: formData
+		// 	}).then(response => response.text())
+		// 	.then(result => alert(result))
+		// 	.catch(error => console.error('Error:', error));
+		// });
+		
+		
+		
+		
+		
+// 		document.getElementById('recipeForm').addEventListener('submit', function(e) {
+//     e.preventDefault();
+
+//     // Collecting input values directly, ignoring FormData
+//     const data = {
+//         title: document.getElementById('title').value,
+//         description: document.getElementById('description').value,
+//         image: document.getElementById('image').value,
+//         prepTime: document.getElementById('prepTime').value,
+//         cookTime: document.getElementById('cookTime').value,
+//         additionalTime: document.getElementById('additionalTime').value,
+//         servings: document.getElementById('servings').value,
+//         yield: document.getElementById('yield').value,
+//         ingredients: [],
+//         instructions: []
+//     };
+
+//     // Collect all ingredients
+//     document.querySelectorAll('.ingredientRow').forEach((row, index) => {
+//         data.ingredients.push({
+//             quantity: row.querySelector('.ingredientQuantity').value,
+//             unit: row.querySelector('.ingredientUnit').value,
+//             text: row.querySelector('.ingredientText').value
+//         });
+//     });
+
+//     // Collect all instructions
+//     document.querySelectorAll('.instructionRow').forEach((row, index) => {
+//         data.instructions.push(row.querySelector('.instructionText').value);
+//     });
+
+//     // Use Fetch to send a POST request with JSON data
+//     fetch('/save-recipe', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify(data)  // Convert data object into JSON string
+//     })
+//     .then(response => response.text())
+//     .then(result => alert(result))
+//     .catch(error => console.error('Error:', error));
+// });
+
+		
+		
+		
+
+
+
+
+
+
+
+
+
+
+
+document.getElementById('recipeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const data = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        image: document.getElementById('image').value,
+        prepTime: parseInt(document.getElementById('prepTime').value, 10),
+        cookTime: parseInt(document.getElementById('cookTime').value, 10),
+        additionalTime: parseInt(document.getElementById('additionalTime').value, 10),
+        servings: parseInt(document.getElementById('servings').value, 10),
+        yield: document.getElementById('yield').value,
+        ingredients: [],
+        instructions: []
+    };
+
+    document.querySelectorAll('.ingredientRow').forEach((row, index) => {
+        data.ingredients.push({
+            quantity: parseFloat(row.querySelector('.ingredientQuantity').value),
+            unit: row.querySelector('.ingredientUnit').value,
+            text: row.querySelector('.ingredientText').value
+        });
+    });
+
+    document.querySelectorAll('.instructionRow').forEach((row, index) => {
+        data.instructions.push(row.querySelector('.instructionText').value);
+    });
+
+    fetch('/save-recipe', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.text())
+    .then(result => alert(result))
+    .catch(error => console.error('Error:', error));
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
+		
+		
+	</script>
+</body>
+</html>

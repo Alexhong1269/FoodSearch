@@ -1,0 +1,29 @@
+.input-wrapper {
+    display: inline-block; /* Makes the div inline but block-level */
+    position: relative; /* Keeps the dropdown aligned */
+}
+
+
+.autocomplete-results {
+	position: absolute;
+	top: 100%;  /* Position directly under the input */
+	left: 0;
+	right: 0;
+	border: 1px solid #ccc;
+	border-top: none;
+	z-index: 1000;
+	background-color: white;
+	max-height: 200px;  /* Set a max-height for scroll */
+	overflow-y: auto;  /* Enable scrolling */
+	box-shadow: 0 4px 6px rgba(0,0,0,0.1);  /* Optional: Adds shadow for better visibility */
+}
+
+.autocomplete-results div {
+	padding: 8px;
+	cursor: pointer;
+	background-color: white;
+}
+
+.autocomplete-results div:hover {
+	background-color: #f0f0f0;
+}

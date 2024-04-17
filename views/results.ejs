@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Foogle - Search Results</title>
+</head>
+<body>
+	<%- include('partials/navigation') %>
+	
+	<!-- Search results -->
+	<div>
+		<h2>
+			Results for "<%= searchQuery %>".
+		</h2>
+		<% recipes.forEach(function(recipe) { %>
+			<div>
+				<h2><a href="/recipe/<%= recipe.RecipeID %>"><%= recipe.Title %></a></h2>
+				<p>Submitted by: <%= recipe.Username %></p>
+				<p><%= recipe.TextDesc %></p>
+				<img src="<%= recipe.Img %>" alt="<%= recipe.Title %>" style="width: 100px; height: auto;">
+			</div>
+		<% }); %>
+		<br>
+		
+		<!-- Pagination links -->
+		<% if(page > 1) { %>
+			<a href="/search?searchQuery=<%= encodeURIComponent(searchQuery) %>&page=<%= page - 1 %>"><b>Previous</b></a>
+		<% } %>
+		<% if(page > 1 && page < totalPages) { %>
+			&nbsp | &nbsp
+		<% } %>
+		<% if(page < totalPages) { %>
+			<a href="/search?searchQuery=<%= encodeURIComponent(searchQuery) %>&page=<%= page + 1 %>"><b>Next</b></a>
+		<% } %>
+	</div>
+</body>
+</html>
