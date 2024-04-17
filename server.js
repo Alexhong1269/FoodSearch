@@ -216,197 +216,70 @@ app.get('/build-recipe', async (req, res) => {
 	}
 });
 
-// Submit a recipe
-// app.post('/save-recipe', async (req, res) => {
-// 	console.log('test');
-	
-// 	// Connect to database
-// 	let pool = await sql.connect(config);
-	
-	
-// 	const transaction = new sql.Transaction(pool);
-	
-	
-	
-// 	try {
-// 		console.log('test2');
-		
-// 		// Insert the data into the tables
-// 		// await pool.transaction(async trx => {
-			
-			
-			
-// 			await transaction.begin();
-			
-// 			const trxRequest = new sql.Request(transaction);
-			
-// 			const { title, description, image, prepTime, cookTime, additionalTime, servings, yield, ingredients, instructions } = req.body;
-			
-			
-			
-// 			console.log('test3');
-			
-			
-// 			let result = await trxRequest
-// 				.input('UserID', sql.Int, req.session.userId)
-// 				.input('title', sql.VarChar, title)
-// 				.input('description', sql.VarChar, description)
-// 				.input('image', sql.VarChar, image)
-// 				.input('pubDate', sql.DateTime, new Date())
-// 				.input('prepTime', sql.Int, prepTime)
-// 				.input('cookTime', sql.Int, cookTime)
-// 				.input('additionalTime', sql.Int, additionalTime)
-// 				.input('servings', sql.Int, servings)
-// 				.input('yield', sql.VarChar, yield)
-// 				.query(`
-// 					INSERT INTO Recipes (UserID, Title, TextDesc, Img, PubDate, PrepTime, CookTime, AdditionalTime, Servings, Yield)
-// 					OUTPUT INSERTED.RecipeID
-// 					VALUES (@UserID, @title, @description, @image, @pubDate, @prepTime, @cookTime, @additionalTime, @servings, @yield);
-// 				`);
-			
-// 			const recipeId = result.recordset[0].RecipeID;
-// 			console.log(recipeId);
-			
-// 			let ingredientIndex = 1;
-// 			ingredients.forEach((ingredient) => {
-// 				trx.request()
-// 					.input('RecipeID', sql.Int, recipeId)
-// 					.input('IngredientNumber', sql.Int, ingredientIndex++)
-// 					.input('Quantity', sql.Decimal, ingredient.quantity)
-// 					.input('Unit', sql.VarChar, ingredient.unit)
-// 					.input('IngredientText', sql.VarChar, ingredient.text)
-// 					.query(`
-// 						INSERT INTO RecipeIngredients (RecipeID, IngredientNumber, Quantity, Unit, IngredientText)
-// 						VALUES (@RecipeID, @IngredientNumber, @Quantity, @Unit, @IngredientText);
-// 					`);
-// 			});
-			
-// 			let instructionIndex = 1;
-// 			req.body.instructions.forEach((instruction) => {
-// 				trx.request()
-// 					.input('RecipeID', sql.Int, recipeId)
-// 					.input('Step', sql.Int, instructionIndex++)
-// 					.input('Instruction', sql.VarChar, instruction)
-// 					.query(`
-// 						INSERT INTO Instructions (RecipeID, Step, Instruction)
-// 						VALUES (@RecipeID, @Step, @Instruction);
-// 					`);
-// 			});
-			
-// 			trx.request()
-// 				.input('RecipeID', sql.Int, recipeId)
-// 				.query(`
-// 					INSERT INTO Ratings (RecipeID, One, Two, Three, Four, Five)
-// 					VALUES (@RecipeID, 0, 0, 0, 0, 0);
-// 				`);
-			
-// 				await transaction.commit();
-// 		// });
-		
-// 		res.send('Recipe saved successfully!');
-// 	} catch (err) {
-// 		console.log('test5');
-// 		console.error('Error saving recipe:', err);
-// 		res.status(500).send('An error occurred while writing to the database.');
-// 	}
-// });
-
-
-
-
-
-
-
-
-
-
-
-
-
 app.post('/save-recipe', async (req, res) => {
-    if (!req.session || !req.session.userId) {
-        return res.status(401).send('You must be logged in to perform this action.');
-    }
+	if (!req.session || !req.session.userId) {
+		return res.status(401).send('You must be logged in to perform this action.');
+	}
 
-    let pool = await sql.connect(config);
-    const transaction = new sql.Transaction(pool);
+	let pool = await sql.connect(config);
+	const transaction = new sql.Transaction(pool);
 
-    try {
-        await transaction.begin();
+	try {
+		await transaction.begin();
 
-        let recipesResult = await new sql.Request(transaction)
-            .input('UserID', sql.Int, req.session.userId)
-            .input('Title', sql.VarChar, req.body.title)
-            .input('TextDesc', sql.VarChar, req.body.description)
-            .input('Img', sql.VarChar, req.body.image)
-            .input('PubDate', sql.DateTime, new Date())
-            .input('PrepTime', sql.Int, req.body.prepTime)
-            .input('CookTime', sql.Int, req.body.cookTime)
-            .input('AdditionalTime', sql.Int, req.body.additionalTime)
-            .input('Servings', sql.Int, req.body.servings)
-            .input('Yield', sql.VarChar, req.body.yield)
-            .query(`INSERT INTO Recipes (UserID, Title, TextDesc, Img, PubDate, PrepTime, CookTime, AdditionalTime, Servings, Yield)
-                    OUTPUT INSERTED.RecipeID
-                    VALUES (@UserID, @Title, @TextDesc, @Img, @PubDate, @PrepTime, @CookTime, @AdditionalTime, @Servings, @Yield)`);
+		const trxRequest = new sql.Request(transaction);
+		const { title, description, image, prepTime, cookTime, additionalTime, servings, yield, ingredients, instructions } = req.body;
 
-        const recipeId = recipesResult.recordset[0].RecipeID;
+		// Insert into Recipes table
+		let result = await trxRequest
+			.input('UserID', sql.Int, req.session.userId)
+			.input('Title', sql.VarChar, title)
+			.input('TextDesc', sql.VarChar, description)
+			.input('Img', sql.VarChar, image)
+			.input('PubDate', sql.DateTime, new Date())
+			.input('PrepTime', sql.Int, prepTime)
+			.input('CookTime', sql.Int, cookTime)
+			.input('AdditionalTime', sql.Int, additionalTime)
+			.input('Servings', sql.Int, servings)
+			.input('Yield', sql.VarChar, yield)
+			.query(`INSERT INTO Recipes (UserID, Title, TextDesc, Img, PubDate, PrepTime, CookTime, AdditionalTime, Servings, Yield)
+					OUTPUT INSERTED.RecipeID
+					VALUES (@UserID, @Title, @TextDesc, @Img, @PubDate, @PrepTime, @CookTime, @AdditionalTime, @Servings, @Yield)`);
 
-        await Promise.all(req.body.ingredients.map(async (ingredient, index) => {
-            await new sql.Request(transaction)
-                .input('RecipeID', sql.Int, recipeId)
-                .input('IngredientNumber', sql.Int, index + 1)
-                .input('Quantity', sql.Decimal(18, 2), ingredient.quantity)
-                .input('Unit', sql.VarChar, ingredient.unit)
-                .input('IngredientText', sql.VarChar, ingredient.text)
-                .query('INSERT INTO RecipeIngredients (RecipeID, IngredientNumber, Quantity, Unit, IngredientText) VALUES (@RecipeID, @IngredientNumber, @Quantity, @Unit, @IngredientText)');
-        }));
+		const recipeId = result.recordset[0].RecipeID;
 
-        await Promise.all(req.body.instructions.map(async (instruction, index) => {
-            await new sql.Request(transaction)
-                .input('RecipeID', sql.Int, recipeId)
-                .input('Step', sql.Int, index + 1)
-                .input('Instruction', sql.VarChar, instruction)
-                .query('INSERT INTO Instructions (RecipeID, Step, Instruction) VALUES (@RecipeID, @Step, @Instruction)');
-        }));
+		// Prepare Ingredient and Instruction insertion queries
+		const ingredientInserts = ingredients.map((ingredient, index) => {
+			return trxRequest
+				.input('RecipeID', sql.Int, recipeId)
+				.input('IngredientNumber', sql.Int, index + 1)
+				.input('Quantity', sql.Decimal(18, 2), ingredient.quantity)
+				.input('Unit', sql.VarChar, ingredient.unit)
+				.input('IngredientText', sql.VarChar, ingredient.text)
+				.query('INSERT INTO RecipeIngredients (RecipeID, IngredientNumber, Quantity, Unit, IngredientText) VALUES (@RecipeID, @IngredientNumber, @Quantity, @Unit, @IngredientText)');
+		});
 
-        await new sql.Request(transaction)
-            .input('RecipeID', sql.Int, recipeId)
-            .query('INSERT INTO Ratings (RecipeID, One, Two, Three, Four, Five) VALUES (@RecipeID, 0, 0, 0, 0, 0)');
+		const instructionInserts = instructions.map((instruction, index) => {
+			return trxRequest
+				.input('RecipeID', sql.Int, recipeId)
+				.input('Step', sql.Int, index + 1)
+				.input('Instruction', sql.VarChar, instruction)
+				.query('INSERT INTO Instructions (RecipeID, Step, Instruction) VALUES (@RecipeID, @Step, @Instruction)');
+		});
 
-        await transaction.commit();
-        res.send('Recipe saved successfully!');
-    } catch (err) {
-        await transaction.rollback();
-        console.error('Error saving recipe:', err);
-        res.status(500).send('Failed to save recipe.');
-    }
+		// Execute all ingredient and instruction inserts
+		await Promise.all([...ingredientInserts, ...instructionInserts]);
+
+		// Commit transaction if all operations succeed
+		await transaction.commit();
+		res.send('Recipe saved successfully!');
+	} catch (err) {
+		console.log('Rolling back transaction...');
+		await transaction.rollback();
+		console.error('Error saving recipe:', err);
+		res.status(500).send('Failed to save recipe.');
+	}
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Search ingredients on the build recipe page
 app.get('/ingredients', async (req, res) => {
