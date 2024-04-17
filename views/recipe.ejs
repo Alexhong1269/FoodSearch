@@ -69,12 +69,12 @@
 		
 		<h2>Ratings</h2>
 		<ul>
-			<li>5 Stars: <%= ratings.Five %></li>
-			<li>4 Stars: <%= ratings.Four %></li>
-			<li>3 Stars: <%= ratings.Three %></li>
-			<li>2 Stars: <%= ratings.Two %></li>
-			<li>1 Star: <%= ratings.One %></li>
-		</ul>
+			<li><button onclick="rateRecipe('<%= recipe.RecipeID %>', 5)">5 Stars: <%= ratings.Five %></button></li>
+			<li><button onclick="rateRecipe('<%= recipe.RecipeID %>', 4)">4 Stars: <%= ratings.Four %></button></li>
+			<li><button onclick="rateRecipe('<%= recipe.RecipeID %>', 3)">3 Stars: <%= ratings.Three %></button></li>
+			<li><button onclick="rateRecipe('<%= recipe.RecipeID %>', 2)">2 Stars: <%= ratings.Two %></button></li>
+			<li><button onclick="rateRecipe('<%= recipe.RecipeID %>', 1)">1 Star: <%= ratings.One %></button></li>
+		</ul>		
 	</div>
 	
 	<!-- Get substitutions -->
@@ -114,5 +114,24 @@
 			}
 		});
 	</script>
+	
+	<script>
+		function rateRecipe(recipeId, stars) {
+			fetch('/rate-recipe', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ recipeId: recipeId, stars: stars })
+			})
+			.then(response => response.json())
+			.then(data => {
+				alert('Thank you for rating!');
+				// Optionally update the UI here to show the new rating count
+			})
+			.then(res => window.location.reload())
+			.catch(error => console.error('Error rating the recipe:', error));
+		}
+		</script>
 </body>
 </html>

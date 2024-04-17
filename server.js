@@ -595,6 +595,29 @@ app.get('/category-desc', async (req, res) => {
 	}
 });
 
+// Rate a recipe
+app.post('/rate-recipe', async (req, res) => {
+	const { recipeId, stars } = req.body;
+	if (!recipeId || !stars) {
+		return res.status(400).send("Recipe ID and stars are required.");
+	}
+
+	try {
+		let pool = await sql.connect(config);
+		const column = ['One', 'Two', 'Three', 'Four', 'Five'][stars - 1]; // Maps stars to column names
+		const query = `UPDATE Ratings SET ${column} = ${column} + 1 WHERE RecipeID = @RecipeID`;
+
+		await pool.request()
+			.input('RecipeID', sql.Int, recipeId)
+			.query(query);
+
+		res.json({ success: true, message: 'Rating updated successfully.' });
+	} catch (err) {
+		console.error('Failed to update rating:', err);
+		res.status(500).send('Failed to update rating.');
+	}
+});
+
 // Host server
 app.listen(port, () => {
 	console.log(`Server running at http://localhost:${port}`);
