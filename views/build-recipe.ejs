@@ -88,8 +88,6 @@
 		<button type="submit">Save Recipe</button>
 	</form>
 	
-	<button type="button" id="loadSampleData">Load Sample Recipe</button>
-	
 	<!-- JavaScript for dynamic elements and ingredient search -->
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
@@ -137,6 +135,7 @@
 								div.setAttribute('data-id', ingredient.IngredientID);
 								div.onclick = () => {
 									searchInput.value = div.textContent;
+									searchInput.setAttribute('data-id', ingredient.IngredientID);
 									resultsContainer.innerHTML = '';
 									populateFields(searchInput.closest('.ingredientRow'));
 								};
@@ -172,5 +171,62 @@
 			}
 		});
 	</script>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- JavaScript for saving a new recipe -->
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const form = document.getElementById('recipeForm');
+			
+			form.addEventListener('submit', function(event) {
+				event.preventDefault();
+				
+				const formData = new FormData(form);
+				
+				const ingredientRows = document.querySelectorAll('.ingredientRow');
+				ingredientRows.forEach((row, index) => {
+					const ingredientSearchInput = row.querySelector('.ingredientSearch');
+					const ingredientId = ingredientSearchInput.getAttribute('data-id');
+					formData.append(`ingredients[${index}][ingredientId]`, ingredientId);
+					formData.append(`ingredients[${index}][quantity]`, row.querySelector('.ingredientQuantity').value);
+					formData.append(`ingredients[${index}][unit]`, row.querySelector('.ingredientUnit').value);
+					formData.append(`ingredients[${index}][text]`, row.querySelector('.ingredientText').value);
+				});
+				
+				const instructionRows = document.querySelectorAll('.instructionRow');
+				instructionRows.forEach((row, index) => {
+					formData.append(`instructions[${index}]`, row.querySelector('.instructionText').value);
+				});
+				
+				fetch(form.action, {
+					method: 'POST',
+					body: formData
+				})
+				.then(response => response.json())
+				.then(data => {
+					console.log('Success:', data);
+					alert('Recipe saved successfully!');
+				})
+				.catch((error) => {
+					console.error('Error:', error);
+					alert('Failed to save recipe.');
+				});
+			});
+		});
+	</script>
+	
 </body>
 </html>
