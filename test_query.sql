@@ -67,7 +67,7 @@
 -- VALUES (14055, 1, 'Instruction 1'),
 --        (14055, 2, 'Instruction 2');
 
-SELECT * FROM Recipes WHERE RecipeID = 14082;
+SELECT * FROM Instructions WHERE RecipeID >= 14083;
 -- SELECT * FROM RecipeIngredients WHERE RecipeID > 14052;
 
 

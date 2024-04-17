@@ -47,43 +47,67 @@
 		<br><br>
 		
 		<div id="ingredientsContainer">
-			<div class="ingredientRow">
-				<input type="number" class="ingredientQuantity" placeholder="Quantity" min="0">
-				<select class="ingredientUnit">
-					<option value="">-- Unit --</option>
-					<option value="bushels">bushels</option>
-					<option value="cups">cups</option>
-					<option value="fluid ounces">fluid ounces</option>
-					<option value="gallons">gallons</option>
-					<option value="grams">grams</option>
-					<option value="kilograms">kilograms</option>
-					<option value="liters">liters</option>
-					<option value="milliliters">milliliters</option>
-					<option value="ounces">ounces</option>
-					<option value="pints">pints</option>
-					<option value="pounds">pounds</option>
-					<option value="quarts">quarts</option>
-					<option value="tablespoons">tablespoons</option>
-					<option value="teaspoons">teaspoons</option>
-				</select>
-				<div class="input-wrapper">
-					<input type="text" class="ingredientSearch" placeholder="Search Ingredient">
+			<button type="button" id="addIngredientBtn">Add Ingredient</button>
+			<% if (recipe && ingredients.length > 0) { %>
+				<% ingredients.forEach(function(ingredient) { %>
+					<div class="ingredientRow">
+						<input type="number" class="ingredientQuantity" placeholder="Quantity" value="<%= ingredient.Quantity %>" min="0">
+						<select class="ingredientUnit">
+							<option value="">-- Select Unit --</option>
+							<% ['bushels', 'cups', 'fluid ounces', 'gallons', 'grams', 'kilograms', 'liters', 'milliliters', 'ounces', 'pints', 'pounds', 'quarts', 'tablespoons', 'teaspoons'].forEach(function(unit) { %>
+								<option value="<%= unit %>" <%= unit === ingredient.Unit ? 'selected' : '' %>><%= unit %></option>
+							<% }); %>
+						</select>
+						<input type="text" class="ingredientSearch" placeholder="Search Ingredient" value="<%= ingredient.Name %>" data-id="<%= ingredient.IngredientID %>">
+						<input type="text" class="ingredientText" placeholder="Describe Ingredient" value="<%= ingredient.IngredientText %>">
+						<button type="button" class="removeButton">Remove</button>
+					</div>
+				<% }); %>
+			<% } else { %>
+				<div class="ingredientRow">
+					<input type="number" class="ingredientQuantity" placeholder="Quantity" min="0">
+					<select class="ingredientUnit">
+						<option value="">-- Unit --</option>
+						<option value="bushels">bushels</option>
+						<option value="cups">cups</option>
+						<option value="fluid ounces">fluid ounces</option>
+						<option value="gallons">gallons</option>
+						<option value="grams">grams</option>
+						<option value="kilograms">kilograms</option>
+						<option value="liters">liters</option>
+						<option value="milliliters">milliliters</option>
+						<option value="ounces">ounces</option>
+						<option value="pints">pints</option>
+						<option value="pounds">pounds</option>
+						<option value="quarts">quarts</option>
+						<option value="tablespoons">tablespoons</option>
+						<option value="teaspoons">teaspoons</option>
+					</select>
+					<div class="input-wrapper">
+						<input type="text" class="ingredientSearch" placeholder="Search Ingredient">
+					</div>
+					<input type="text" class="ingredientText" placeholder="Describe Ingredient">
+					<button type="button" class="removeButton">Remove</button>
 				</div>
-				<input type="text" class="ingredientText" placeholder="Describe Ingredient">
-				<button type="button" class="removeButton">Remove</button>
-			</div>
+			<% } %>
 		</div>
-		<button type="button" id="addIngredientBtn">Add Ingredient</button>
-		<br><br>
 		
 		<div id="instructionsContainer">
-			<div class="instructionRow">
-				<textarea class="instructionText" placeholder="Write step description here..."></textarea>
-				<button type="button" class="removeInstructionBtn">Remove</button>
-			</div>
+			<button type="button" id="addInstructionBtn">Add Step</button>
+			<% if (recipe && instructions.length > 0) { %>
+				<% instructions.forEach(function(instruction) { %>
+					<div class="instructionRow">
+						<textarea class="instructionText" placeholder="Write step description here..."><%= instruction.Instruction %></textarea>
+						<button type="button" class="removeInstructionBtn">Remove</button>
+					</div>
+				<% }); %>
+			<% } else { %>
+				<div class="instructionRow">
+					<textarea class="instructionText" placeholder="Write step description here..."></textarea>
+					<button type="button" class="removeInstructionBtn">Remove</button>
+				</div>
+			<% } %>
 		</div>
-		<button type="button" id="addInstructionBtn">Add Step</button>
-		<br><br>
 		
 		<button type="submit">Save Recipe</button>
 	</form>
@@ -95,21 +119,29 @@
 			const instructionsContainer = document.getElementById('instructionsContainer');
 			document.getElementById('addIngredientBtn').addEventListener('click', () => addRow(container, 'ingredientRow', true));
 			document.getElementById('addInstructionBtn').addEventListener('click', () => addRow(instructionsContainer, 'instructionRow', false));
+
+			// Initialize autocomplete for any existing ingredient searches
 			document.querySelectorAll('.ingredientSearch').forEach(input => attachAutocomplete(input));
+
+			// Update remove buttons for existing rows
 			updateRemoveButtons(container, 'ingredientRow', 'removeButton');
 			updateRemoveButtons(instructionsContainer, 'instructionRow', 'removeInstructionBtn');
-			
+
+			// Initialize existing rows (if any) upon page load
+			initializeExistingRows(container, 'ingredientRow', true);
+			initializeExistingRows(instructionsContainer, 'instructionRow', false);
+
 			function addRow(parentContainer, rowClass, attachAutoComplete) {
 				const newRow = document.createElement('div');
 				newRow.innerHTML = document.querySelector('.' + rowClass).innerHTML;
 				newRow.className = rowClass;
 				parentContainer.appendChild(newRow);
-				updateRemoveButtons(parentContainer, rowClass, newRow.querySelector('.removeButton') ? 'removeButton' : 'removeInstructionBtn');
 				if (attachAutoComplete) {
 					attachAutocomplete(newRow.querySelector('.ingredientSearch'));
 				}
+				updateRemoveButtons(parentContainer, rowClass, newRow.querySelector('.removeButton') ? 'removeButton' : 'removeInstructionBtn');
 			}
-			
+
 			function attachAutocomplete(searchInput) {
 				const resultsContainer = document.createElement('div');
 				resultsContainer.className = 'autocomplete-results';
@@ -121,7 +153,7 @@
 					}
 				});
 			}
-			
+
 			function handleSearch(searchInput, resultsContainer) {
 				const searchText = searchInput.value;
 				if (searchText.length > 1) {
@@ -146,7 +178,7 @@
 					resultsContainer.innerHTML = '';
 				}
 			}
-			
+
 			function updateRemoveButtons(parentContainer, rowClass, buttonClass) {
 				const removeButtons = parentContainer.querySelectorAll('.' + buttonClass);
 				removeButtons.forEach(button => {
@@ -154,14 +186,14 @@
 					button.onclick = () => removeRow(button, parentContainer, rowClass, buttonClass);
 				});
 			}
-			
+
 			function removeRow(button, parentContainer, rowClass, buttonClass) {
 				if (parentContainer.querySelectorAll('.' + rowClass).length > 1) {
 					button.closest('.' + rowClass).remove();
 					updateRemoveButtons(parentContainer, rowClass, buttonClass);
 				}
 			}
-			
+
 			function populateFields(row) {
 				const quantity = row.querySelector('.ingredientQuantity').value;
 				const unit = row.querySelector('.ingredientUnit').value;
@@ -169,64 +201,80 @@
 				const combinedInput = row.querySelector('.ingredientText');
 				combinedInput.value = `${quantity} ${unit} ${ingredient}`;
 			}
+
+			function initializeExistingRows(parentContainer, rowClass, attachAutoComplete) {
+				// This function initializes functionality for existing rows when the page is loaded with a recipe
+				const existingRows = parentContainer.querySelectorAll('.' + rowClass);
+				existingRows.forEach(row => {
+					if (attachAutoComplete && row.querySelector('.ingredientSearch')) {
+						attachAutocomplete(row.querySelector('.ingredientSearch'));
+					}
+				});
+			}
 		});
 	</script>
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	<!-- JavaScript for saving a new recipe -->
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
-			const form = document.getElementById('recipeForm');
-			
-			form.addEventListener('submit', function(event) {
-				event.preventDefault();
-				
-				const formData = new FormData(form);
-				
-				const ingredientRows = document.querySelectorAll('.ingredientRow');
-				ingredientRows.forEach((row, index) => {
-					const ingredientSearchInput = row.querySelector('.ingredientSearch');
-					const ingredientId = ingredientSearchInput.getAttribute('data-id');
-					formData.append(`ingredients[${index}][ingredientId]`, ingredientId);
-					formData.append(`ingredients[${index}][quantity]`, row.querySelector('.ingredientQuantity').value);
-					formData.append(`ingredients[${index}][unit]`, row.querySelector('.ingredientUnit').value);
-					formData.append(`ingredients[${index}][text]`, row.querySelector('.ingredientText').value);
-				});
-				
-				const instructionRows = document.querySelectorAll('.instructionRow');
-				instructionRows.forEach((row, index) => {
-					formData.append(`instructions[${index}]`, row.querySelector('.instructionText').value);
-				});
-				
-				fetch(form.action, {
-					method: 'POST',
-					body: formData
-				})
-				.then(response => response.json())
-				.then(data => {
-					console.log('Success:', data);
-					alert('Recipe saved successfully!');
-				})
-				.catch((error) => {
-					console.error('Error:', error);
-					alert('Failed to save recipe.');
-				});
-			});
-		});
+    const form = document.getElementById('recipeForm');
+    const recipeId = form.querySelector('input[name="recipeId"]').value; // Check if there's an existing recipe ID
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const formData = new FormData();
+        formData.append('recipeId', recipeId);
+        formData.append('title', document.getElementById('title').value);
+        formData.append('description', document.getElementById('description').value);
+        formData.append('image', document.getElementById('image').value);
+        formData.append('prepTime', document.getElementById('prepTime').value);
+        formData.append('cookTime', document.getElementById('cookTime').value);
+        formData.append('additionalTime', document.getElementById('additionalTime').value);
+        formData.append('servings', document.getElementById('servings').value);
+        formData.append('yield', document.getElementById('yield').value);
+
+        // Collect Ingredients
+        const ingredients = [];
+        document.querySelectorAll('.ingredientRow').forEach((row, index) => {
+            const ingredientData = {
+                ingredientId: row.querySelector('.ingredientSearch').getAttribute('data-id'),
+                quantity: row.querySelector('.ingredientQuantity').value,
+                unit: row.querySelector('.ingredientUnit').value,
+                text: row.querySelector('.ingredientText').value
+            };
+            ingredients.push(ingredientData);
+        });
+        formData.append('ingredients', JSON.stringify(ingredients));
+
+        // Collect Instructions
+        const instructions = [];
+        document.querySelectorAll('.instructionRow').forEach((row, index) => {
+            const instructionText = row.querySelector('.instructionText').value;
+            instructions.push(instructionText);
+        });
+        formData.append('instructions', JSON.stringify(instructions));
+
+        // Determine the correct URL based on whether it's an update or a new creation
+        const submitUrl = recipeId ? '/update-recipe' : '/save-recipe';
+
+        // Use fetch API to submit the form data
+        fetch(submitUrl, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            alert('Recipe saved successfully!');
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('Failed to save recipe.');
+        });
+    });
+});
+
 	</script>
-	
 </body>
 </html>
