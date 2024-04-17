@@ -229,67 +229,67 @@
 		});
 	</script>
 	
-	<!-- JavaScript for saving a new recipe -->
+	<!-- JavaScript for saving a recipe -->
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('recipeForm');
-    const recipeId = form.querySelector('input[name="recipeId"]').value; // Check if there's an existing recipe ID
-
-    form.addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent default form submission
-
-        const formData = new FormData();
-        formData.append('recipeId', recipeId);
-        formData.append('title', document.getElementById('title').value);
-        formData.append('description', document.getElementById('description').value);
-        formData.append('image', document.getElementById('image').value);
-        formData.append('prepTime', document.getElementById('prepTime').value);
-        formData.append('cookTime', document.getElementById('cookTime').value);
-        formData.append('additionalTime', document.getElementById('additionalTime').value);
-        formData.append('servings', document.getElementById('servings').value);
-        formData.append('yield', document.getElementById('yield').value);
-
-        // Collect Ingredients
-        const ingredients = [];
-        document.querySelectorAll('.ingredientRow').forEach((row, index) => {
-            const ingredientData = {
-                ingredientId: row.querySelector('.ingredientSearch').getAttribute('data-id'),
-                quantity: row.querySelector('.ingredientQuantity').value,
-                unit: row.querySelector('.ingredientUnit').value,
-                text: row.querySelector('.ingredientText').value
-            };
-            ingredients.push(ingredientData);
-        });
-        formData.append('ingredients', JSON.stringify(ingredients));
-
-        // Collect Instructions
-        const instructions = [];
-        document.querySelectorAll('.instructionRow').forEach((row, index) => {
-            const instructionText = row.querySelector('.instructionText').value;
-            instructions.push(instructionText);
-        });
-        formData.append('instructions', JSON.stringify(instructions));
-
-        // Determine the correct URL based on whether it's an update or a new creation
-        const submitUrl = recipeId ? '/update-recipe' : '/save-recipe';
-
-        // Use fetch API to submit the form data
-        fetch(submitUrl, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success:', data);
-            alert('Recipe saved successfully!');
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            alert('Failed to save recipe.');
-        });
-    });
-});
-
+			const form = document.getElementById('recipeForm');
+			const recipeId = form.querySelector('input[name="recipeId"]').value; // Check if there's an existing recipe ID
+			
+			form.addEventListener('submit', function(event) {
+				event.preventDefault(); // Prevent default form submission
+				
+				const formData = new FormData();
+				formData.append('recipeId', recipeId);
+				formData.append('title', document.getElementById('title').value);
+				formData.append('description', document.getElementById('description').value);
+				formData.append('image', document.getElementById('image').value);
+				formData.append('prepTime', document.getElementById('prepTime').value);
+				formData.append('cookTime', document.getElementById('cookTime').value);
+				formData.append('additionalTime', document.getElementById('additionalTime').value);
+				formData.append('servings', document.getElementById('servings').value);
+				formData.append('yield', document.getElementById('yield').value);
+				
+				// Collect Ingredients
+				const ingredients = [];
+				document.querySelectorAll('.ingredientRow').forEach((row, index) => {
+					const ingredientData = {
+						ingredientId: row.querySelector('.ingredientSearch').getAttribute('data-id'),
+						quantity: row.querySelector('.ingredientQuantity').value,
+						unit: row.querySelector('.ingredientUnit').value,
+						text: row.querySelector('.ingredientText').value
+					};
+					ingredients.push(ingredientData);
+				});
+				formData.append('ingredients', JSON.stringify(ingredients));
+				
+				// Collect Instructions
+				const instructions = [];
+				document.querySelectorAll('.instructionRow').forEach((row, index) => {
+					const instructionText = row.querySelector('.instructionText').value;
+					instructions.push(instructionText);
+				});
+				formData.append('instructions', JSON.stringify(instructions));
+				
+				// Determine the correct URL based on whether it's an update or a new creation
+				const submitUrl = recipeId ? '/update-recipe' : '/save-recipe';
+				
+				// Use fetch API to submit the form data
+				fetch(submitUrl, {
+					method: 'POST',
+					body: formData
+				})
+				.then(response => response.json())
+				.then(data => {
+					console.log('Success:', data);
+					alert('Recipe saved successfully!');
+				})
+				.catch((error) => {
+					console.error('Error:', error);
+					alert('Failed to save recipe.');
+				});
+				alert('Recipe saved successfully!');
+			});
+		});
 	</script>
 </body>
 </html>

@@ -15,7 +15,7 @@
 			<% recipes.forEach(recipe => { %>
 				<li>
 					<a href="/recipe/<%= recipe.RecipeID %>"><%= recipe.Title %></a>
-					<a href="/build-recipe?recipeId=<%= recipe.RecipeID %>">Edit</a>
+					<button onclick="window.location.href='/build-recipe?recipeId=<%= recipe.RecipeID %>';">Edit</button>
 					<button onclick="deleteRecipe('<%= recipe.RecipeID %>')">Delete</button>
 				</li>
 			<% }); %>
@@ -25,12 +25,13 @@
 	<% } %>
 	<a href="/build-recipe">Add Recipe</a>
 	
+	<!-- JavaScript for deleting a recipe -->
 	<script>
 		function deleteRecipe(recipeId) {
 			if (confirm('Are you sure you want to delete this recipe?')) {
 				fetch('/delete-recipe/' + recipeId, { method: 'DELETE' })
 					.then(res => window.location.reload())
-					.catch(err => console.error('Error deleting recipe:', err));
+					.catch(err => console.error('Error deleting recipe: ', err));
 			}
 		}
 	</script>

@@ -1,17 +1,16 @@
-require('dotenv').config(); // npm install dotenv (for loading environment variables, i.e. database credentials)
-const bcrypt = require('bcrypt'); // npm install bcrypt (for hashing and comparing passwords)
-const express = require('express'); // npm install express (a minimal web framework)
-const session = require('express-session'); // npm install express-session (for session management)
-const sql = require('mssql'); // npm install mssql (for connecting to database)
-const multer = require('multer'); // npm install multer (for handling multi-part form data)
+require('dotenv').config(); // for loading environment variables, i.e. database credentials
+const bcrypt = require('bcrypt'); // for hashing and comparing passwords
+const express = require('express'); // a minimal web framework
+const session = require('express-session'); // for session management
+const sql = require('mssql'); // for connecting to database
+const multer = require('multer'); // for handling multi-part form data
 
 const app = express();
 const port = 8080;
 app.use(express.json());
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
-
-app.set('view engine', 'ejs'); // npm install ejs (for generating HTML with JavaScript)
+app.set('view engine', 'ejs'); // for generating HTML with JavaScript
 
 // Database configuration
 const config = {
@@ -54,9 +53,15 @@ app.get('/register', (req, res) => {
 	res.sendFile(__dirname + '/public/register.html');
 });
 
+// Show the login page
+app.get('/login', (req, res) => {
+	res.sendFile(__dirname + '/public/login.html');
+});
+
 // Register an account
 app.post('/register', async (req, res) => {
 	try {
+		
 		// Connect to database
 		let pool = await sql.connect(config);
 		
@@ -70,7 +75,11 @@ app.post('/register', async (req, res) => {
 		const checkUser = await pool.request()
 			.input('username', sql.VarChar, username)
 			.input('email', sql.VarChar, email)
-			.query('SELECT * FROM Users WHERE Username = @username OR Email = @email');
+			.query(`
+				SELECT *
+				FROM Users
+				WHERE Username = @username OR Email = @email
+			`);
 		
 		// Add the user to the database.
 		if (checkUser.recordset.length > 0) {
@@ -85,8 +94,10 @@ app.post('/register', async (req, res) => {
 				.input('username', sql.VarChar, username)
 				.input('email', sql.VarChar, email)
 				.input('password', sql.VarChar, hashedPassword)
-				.query('INSERT INTO Users VALUES (NEXT VALUE FOR UserSeq, @username, @email, @password)');
-			
+				.query(`
+					INSERT INTO Users
+					VALUES (NEXT VALUE FOR UserSeq, @username, @email, @password)
+				`);
 			res.send(`
 				<script>
 					alert('Registration successful.');
@@ -95,19 +106,15 @@ app.post('/register', async (req, res) => {
 			`);
 		}
 	} catch (err) {
-		console.error('Error registering user:', err);
-		res.status(500).send('An error occurred while querying the database.');
+		console.error('Error: ', err);
+		res.status(500).send('An error occurred while registering a user.');
 	}
-});
-
-// Show the login page
-app.get('/login', (req, res) => {
-	res.sendFile(__dirname + '/public/login.html');
 });
 
 // Log in
 app.post('/login', async (req, res) => {
 	try {
+		
 		// Connect to the database
 		let pool = await sql.connect(config);
 		
@@ -117,7 +124,11 @@ app.post('/login', async (req, res) => {
 		// Check if the user exists
 		const user = await pool.request()
 			.input('username', sql.VarChar, username)
-			.query('SELECT * FROM Users WHERE Username = @username');
+			.query(`
+				SELECT *
+				FROM Users
+				WHERE Username = @username
+			`);
 		
 		// If the user exists, check the password
 		if (user.recordset.length > 0) {
@@ -130,30 +141,32 @@ app.post('/login', async (req, res) => {
 			} else {
 				res.send(`
 					<script>
-						alert("Incorrect username or password.");
-						window.location.href="/login";
+						alert('Incorrect username or password.');
+						window.location.href='/login';
 					</script>
 				`);
 			}
 		} else {
 			res.send(`
 				<script>
-					alert("Incorrect username or password.");
-					window.location.href="/login";
+					alert('Incorrect username or password.');
+					window.location.href='/login';
 				</script>
 			`);
 		}
 	} catch (err) {
-		console.error('Error during login:', err);
+		console.error('Error: ', err);
 		res.status(500).send('An error occurred while logging in.');
 	}
 });
 
 // Log out
 app.get('/logout', (req, res) => {
+	
+	// Destroy login session
 	req.session.destroy((err) => {
 		if (err) {
-			console.error('Error during logout:', err);
+			console.error('Error: ', err);
 			return res.status(500).send('An error occurred while logging out.');
 		}
 		res.redirect('/');
@@ -163,6 +176,7 @@ app.get('/logout', (req, res) => {
 // Show the account page
 app.get('/account', async (req, res) => {
 	try {
+		
 		// Connect to database
 		let pool = await sql.connect(config);
 		
@@ -179,67 +193,90 @@ app.get('/account', async (req, res) => {
 				WHERE UserID = @userId
 			`);
 		
-		// 
+		// Send recipes to client
 		res.render('account', {
 			recipes: result.recordset,
 			username: username
 		});
 	} catch (err) {
-		console.error('Error getting account page:', err);
-		res.status(500).send('An error occurred while querying the database.');
+		console.error('Error: ', err);
+		res.status(500).send("An error occurred while getting the user's recipes.");
 	}
 });
 
 // Add or edit a recipe
 app.get('/build-recipe', async (req, res) => {
+	
+	// Get recipe ID from URL if any
 	const recipeId = req.query.recipeId;
 	
+	// If modifying an existing recipe
 	if (recipeId) {
 		try {
+			
+			// Connect to database
 			let pool = await sql.connect(config);
 			
-			// Fetch the main recipe details
+			// Query the recipe details
 			const recipeDetails = await pool.request()
 				.input('recipeId', sql.Int, recipeId)
-				.query('SELECT * FROM Recipes WHERE RecipeID = @recipeId');
-			
-			// Fetch ingredients associated with the recipe
+				.query(`
+					SELECT *
+					FROM Recipes
+					WHERE RecipeID = @recipeId
+				`);
 			const ingredients = await pool.request()
-			.input('recipeId', sql.Int, recipeId)
-			.query('SELECT ri.Quantity, ri.Unit, ri.IngredientText, i.Name, i.IngredientID FROM RecipeIngredients ri JOIN Ingredients i ON ri.IngredientID = i.IngredientID WHERE ri.RecipeID = @recipeId ORDER BY ri.IngredientNumber');
-			
-			// Fetch instructions associated with the recipe
+				.input('recipeId', sql.Int, recipeId)
+				.query(`
+					SELECT ri.Quantity, ri.Unit, ri.IngredientText, i.Name, i.IngredientID
+					FROM RecipeIngredients ri
+					JOIN Ingredients i ON ri.IngredientID = i.IngredientID
+					WHERE ri.RecipeID = @recipeId
+					ORDER BY ri.IngredientNumber
+			`);
 			const instructions = await pool.request()
 				.input('recipeId', sql.Int, recipeId)
-				.query('SELECT * FROM Instructions WHERE RecipeID = @recipeId ORDER BY Step');
+				.query(`
+					SELECT *
+					FROM Instructions
+					WHERE RecipeID = @recipeId
+					ORDER BY Step
+				`);
 			
+			// Send recipe details to client
 			res.render('build-recipe', {
 				recipe: recipeDetails.recordset[0],
 				ingredients: ingredients.recordset,
 				instructions: instructions.recordset
 			});
 		} catch (err) {
-			console.error('Error getting recipe details:', err);
-			res.status(500).send('An error occurred while querying the database.');
+			console.error('Error: ', err);
+			res.status(500).send('An error occurred while getting the recipe details.');
 		}
+		
+	// If building a new recipe
 	} else {
+		
+		// Send blank recipe details to client
 		res.render('build-recipe', { recipe: null, ingredients: [], instructions: [] });
 	}
 });
 
 // Insert a new recipe
 app.post('/save-recipe', multer().none(), async (req, res) => {
-	
-	console.log('Received data:', req.body);
-	
 	try {
+		
+		// Connect to database
 		let pool = await sql.connect(config);
 		
-		// Step 1: Insert into Recipes table
+		// Get parameters
 		const { title, description, image, prepTime, cookTime, additionalTime, servings, yield } = req.body;
 		const userID = req.session.userId;
 		const pubDate = new Date();
+		const ingredients = JSON.parse(req.body.ingredients || '[]');
+		const instructions = JSON.parse(req.body.instructions || '[]');
 		
+		// Insert the recipe details
 		const result = await pool.request()
 			.input('UserID', sql.Int, userID)
 			.input('Title', sql.NVarChar, title)
@@ -251,18 +288,12 @@ app.post('/save-recipe', multer().none(), async (req, res) => {
 			.input('AdditionalTime', sql.Int, additionalTime)
 			.input('Servings', sql.Int, servings)
 			.input('Yield', sql.NVarChar, yield)
-			.query(`INSERT INTO Recipes (UserID, Title, TextDesc, Img, PubDate, PrepTime, CookTime, AdditionalTime, Servings, Yield)
-					OUTPUT INSERTED.RecipeID
-					VALUES (@UserID, @Title, @TextDesc, @Img, @PubDate, @PrepTime, @CookTime, @AdditionalTime, @Servings, @Yield);`);
-		
+			.query(`
+				INSERT INTO Recipes (UserID, Title, TextDesc, Img, PubDate, PrepTime, CookTime, AdditionalTime, Servings, Yield)
+				OUTPUT INSERTED.RecipeID
+				VALUES (@UserID, @Title, @TextDesc, @Img, @PubDate, @PrepTime, @CookTime, @AdditionalTime, @Servings, @Yield);
+			`);
 		const recipeId = result.recordset[0].RecipeID;
-		
-		console.log(recipeId);
-		
-		const ingredients = JSON.parse(req.body.ingredients || '[]');
-		const instructions = JSON.parse(req.body.instructions || '[]');
-		
-		// Step 2: Insert into RecipeIngredients
 		ingredients.forEach(async (ingredient, index) => {
 			await pool.request()
 				.input('RecipeID', sql.Int, recipeId)
@@ -271,45 +302,46 @@ app.post('/save-recipe', multer().none(), async (req, res) => {
 				.input('Quantity', sql.Decimal, ingredient.quantity)
 				.input('Unit', sql.NVarChar, ingredient.unit)
 				.input('IngredientText', sql.NVarChar, ingredient.text)
-				.query(`INSERT INTO RecipeIngredients (RecipeID, IngredientNumber, IngredientID, Quantity, Unit, IngredientText)
-						VALUES (@RecipeID, @IngredientNumber, @IngredientID, @Quantity, @Unit, @IngredientText);`);
+				.query(`
+					INSERT INTO RecipeIngredients (RecipeID, IngredientNumber, IngredientID, Quantity, Unit, IngredientText)
+					VALUES (@RecipeID, @IngredientNumber, @IngredientID, @Quantity, @Unit, @IngredientText);
+				`);
 		});
-		
-		// Step 3: Initialize Ratings
-		await pool.request()
-			.input('RecipeID', sql.Int, recipeId)
-			.query(`INSERT INTO Ratings (RecipeID, One, Two, Three, Four, Five)
-					VALUES (@RecipeID, 0, 0, 0, 0, 0);`);
-		
-		// Step 4: Insert Instructions
 		instructions.forEach(async (instruction, index) => {
 			await pool.request()
 				.input('RecipeID', sql.Int, recipeId)
 				.input('Step', sql.Int, index + 1)
 				.input('Instruction', sql.NVarChar, instruction)
-				.query(`INSERT INTO Instructions (RecipeID, Step, Instruction)
-						VALUES (@RecipeID, @Step, @Instruction);`);
+				.query(`
+					INSERT INTO Instructions (RecipeID, Step, Instruction)
+					VALUES (@RecipeID, @Step, @Instruction);
+				`);
 		});
-		
-		// res.send('Recipe saved successfully!');
+		await pool.request()
+			.input('RecipeID', sql.Int, recipeId)
+			.query(`
+				INSERT INTO Ratings (RecipeID, One, Two, Three, Four, Five)
+				VALUES (@RecipeID, 0, 0, 0, 0, 0);
+			`);
 	} catch (err) {
-		console.error('Failed to save recipe:', err);
-		res.status(500).send('Failed to save recipe.');
+		console.error('Error: ', err);
+		res.status(500).send('An error occured while saving the recipe.');
 	}
 });
 
 // Update a recipe
 app.post('/update-recipe', multer().none(), async (req, res) => {
-	const { recipeId, title, description, image, prepTime, cookTime, additionalTime, servings, yield, ingredients, instructions } = req.body;
-
-	if (!recipeId) {
-		return res.status(400).send("Recipe ID is required for updating.");
-	}
-
 	try {
+		
+		// Connect to database
 		let pool = await sql.connect(config);
-
-		// Step 1: Update the main recipe details
+		
+		// Get parameters
+		const { recipeId, title, description, image, prepTime, cookTime, additionalTime, servings, yield} = req.body;
+		const ingredients = JSON.parse(req.body.ingredients || '[]');
+		const instructions = JSON.parse(req.body.instructions || '[]');
+		
+		// Update the recipe details
 		await pool.request()
 			.input('RecipeID', sql.Int, recipeId)
 			.input('Title', sql.NVarChar, title)
@@ -320,16 +352,23 @@ app.post('/update-recipe', multer().none(), async (req, res) => {
 			.input('AdditionalTime', sql.Int, additionalTime)
 			.input('Servings', sql.Int, servings)
 			.input('Yield', sql.NVarChar, yield)
-			.query(`UPDATE Recipes SET 
-					Title = @Title, TextDesc = @TextDesc, Img = @Img,
-					PrepTime = @PrepTime, CookTime = @CookTime, 
-					AdditionalTime = @AdditionalTime, Servings = @Servings, Yield = @Yield
-					WHERE RecipeID = @RecipeID;`);
-
-		// Step 2: Update ingredients
-		// Assuming ingredients are sent as JSON and need deleting and reinserting
-		await pool.request().input('RecipeID', sql.Int, recipeId).query('DELETE FROM RecipeIngredients WHERE RecipeID = @RecipeID');
-		JSON.parse(ingredients).forEach(async (ingredient, index) => {
+			.query(`
+				UPDATE Recipes SET
+					Title = @Title,
+					TextDesc = @TextDesc,
+					Img = @Img,
+					PrepTime = @PrepTime,
+					CookTime = @CookTime, 
+					AdditionalTime = @AdditionalTime,
+					Servings = @Servings,
+					Yield = @Yield
+					WHERE RecipeID = @RecipeID;
+				`);
+		await pool.request().input('RecipeID', sql.Int, recipeId).query(`
+			DELETE FROM RecipeIngredients
+			WHERE RecipeID = @RecipeID
+		`);
+		ingredients.forEach(async (ingredient, index) => {
 			await pool.request()
 				.input('RecipeID', sql.Int, recipeId)
 				.input('IngredientNumber', sql.Int, index + 1)
@@ -337,96 +376,109 @@ app.post('/update-recipe', multer().none(), async (req, res) => {
 				.input('Quantity', sql.Decimal, ingredient.quantity)
 				.input('Unit', sql.NVarChar, ingredient.unit)
 				.input('IngredientText', sql.NVarChar, ingredient.text)
-				.query(`INSERT INTO RecipeIngredients (RecipeID, IngredientNumber, IngredientID, Quantity, Unit, IngredientText)
-						VALUES (@RecipeID, @IngredientNumber, @IngredientID, @Quantity, @Unit, @IngredientText);`);
+				.query(`
+					INSERT INTO RecipeIngredients (RecipeID, IngredientNumber, IngredientID, Quantity, Unit, IngredientText)
+					VALUES (@RecipeID, @IngredientNumber, @IngredientID, @Quantity, @Unit, @IngredientText);
+				`);
 		});
-
-		// Step 3: Update instructions
-		await pool.request().input('RecipeID', sql.Int, recipeId).query('DELETE FROM Instructions WHERE RecipeID = @RecipeID');
-		JSON.parse(instructions).forEach(async (instruction, index) => {
+		await pool.request().input('RecipeID', sql.Int, recipeId).query(`
+			DELETE FROM Instructions
+			WHERE RecipeID = @RecipeID
+		`);
+		instructions.forEach(async (instruction, index) => {
 			await pool.request()
 				.input('RecipeID', sql.Int, recipeId)
 				.input('Step', sql.Int, index + 1)
 				.input('Instruction', sql.NVarChar, instruction)
-				.query(`INSERT INTO Instructions (RecipeID, Step, Instruction)
-						VALUES (@RecipeID, @Step, @Instruction);`);
+				.query(`
+					INSERT INTO Instructions (RecipeID, Step, Instruction)
+					VALUES (@RecipeID, @Step, @Instruction);
+				`);
 		});
 	} catch (err) {
-		console.error('Failed to update recipe:', err);
-		res.status(500).send('Failed to update recipe.');
+		console.error('Error: ', err);
+		res.status(500).send('An error occured while updating the recipe.');
 	}
 });
 
 // Delete a recipe
 app.delete('/delete-recipe/:recipeId', async (req, res) => {
-	const { recipeId } = req.params;
-
-	if (!recipeId) {
-		return res.status(400).send("Recipe ID is required.");
-	}
-
 	try {
+		
+		// Connect to database
 		let pool = await sql.connect(config);
-
-		// Begin transaction to ensure data integrity
+		
+		// Get parameters
+		const { recipeId } = req.params;
+		
+		// Delete all recipe details
 		const transaction = new sql.Transaction(pool);
 		await transaction.begin();
-
-		const deleteIngredients = `DELETE FROM RecipeIngredients WHERE RecipeID = @RecipeID`;
-		const deleteRatings = `DELETE FROM Ratings WHERE RecipeID = @RecipeID`;
-		const deleteInstructions = `DELETE FROM Instructions WHERE RecipeID = @RecipeID`;
-		const deleteRecipe = `DELETE FROM Recipes WHERE RecipeID = @RecipeID`;
-
 		try {
-			// Delete related data first
-			await transaction.request().input('RecipeID', sql.Int, recipeId).query(deleteIngredients);
-			await transaction.request().input('RecipeID', sql.Int, recipeId).query(deleteRatings);
-			await transaction.request().input('RecipeID', sql.Int, recipeId).query(deleteInstructions);
-
-			// Finally, delete the recipe
-			await transaction.request().input('RecipeID', sql.Int, recipeId).query(deleteRecipe);
-
-			// Commit transaction
+			await transaction.request().input('RecipeID', sql.Int, recipeId).query(`
+				DELETE FROM RecipeIngredients
+				WHERE RecipeID = @RecipeID
+			`);
+			await transaction.request().input('RecipeID', sql.Int, recipeId).query(`
+				DELETE FROM Ratings
+				WHERE RecipeID = @RecipeID
+			`);
+			await transaction.request().input('RecipeID', sql.Int, recipeId).query(`
+				DELETE FROM Instructions
+				WHERE RecipeID = @RecipeID
+			`);
+			await transaction.request().input('RecipeID', sql.Int, recipeId).query(`
+				DELETE FROM Recipes
+				WHERE RecipeID = @RecipeID
+			`);
 			await transaction.commit();
-			res.send('Recipe deleted successfully!');
+			res.send(`
+				<script>
+					window.location.href='/account';
+				</script>
+			`);
 		} catch (error) {
-			// Rollback transaction on error
 			await transaction.rollback();
-			console.error('Error during recipe deletion:', error);
-			res.status(500).send('Failed to delete recipe.');
+			console.error('Error: ', err);
+			res.status(500).send('An error occured while deleting the recipe.');
 		}
 	} catch (err) {
-		console.error('Database connection failed:', err);
-		res.status(500).send('Database connection error.');
+		console.error('Error: ', err);
+		res.status(500).send('An error occured while deleting the recipe.');
 	}
 });
 
 // Search ingredients on the build recipe page
 app.get('/ingredients', async (req, res) => {
-	
-	// Get the search term
-	const searchText = req.query.search;
-	
 	try {
+		
 		// Connect to database
 		let pool = await sql.connect(config);
+		
+		// Get search term
+		const searchText = req.query.search;
 		
 		// Query the database
 		let result = await pool.request()
 			.input('searchText', sql.VarChar, `%${searchText}%`)
-			.query('SELECT IngredientID, Name FROM Ingredients WHERE Name LIKE @searchText');
+			.query(`
+				SELECT IngredientID, Name
+				FROM Ingredients
+				WHERE Name LIKE @searchText
+			`);
 		
-		// Send results to page
+		// Send results to client
 		res.json(result.recordset);
 	} catch (err) {
-		console.error('Error querying ingredients:', err);
-		res.status(500).send('An error occurred while querying the database.');
+		console.error('Error: ', err);
+		res.status(500).send('An error occurred while searching for ingredients.');
 	}
 });
 
 // Search for recipes
 app.get('/search', async (req, res) => {
 	try {
+		
 		// Connect to database
 		let pool = await sql.connect(config);
 		
@@ -463,7 +515,7 @@ app.get('/search', async (req, res) => {
 			OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY
 		`);
 		
-		// Send results to page
+		// Send results to client
 		res.render('results', {
 			recipes: result.recordset,
 			page: validPage,
@@ -471,14 +523,15 @@ app.get('/search', async (req, res) => {
 			searchQuery: searchTerm
 		});
 	} catch (err) {
-		console.error('Error getting search results:', err);
-		res.status(500).send('An error occurred while querying the database.');
+		console.error('Error: ', err);
+		res.status(500).send('An error occurred while searching recipes.');
 	}
 });
 
 // Get recipe details
 app.get('/recipe/:recipeId', async (req, res) => {
 	try {
+		
 		// Connect to database
 		let pool = await sql.connect(config);
 		
@@ -494,8 +547,6 @@ app.get('/recipe/:recipeId', async (req, res) => {
 			JOIN Users ON Recipes.UserID = Users.UserID
 			WHERE Recipes.RecipeID = @recipeId
 		`);
-		
-		// Query ingredients
 		const ingredients = await request.query(`
 			SELECT ri.IngredientID, ri.IngredientText, i.Vegetarian, i.Vegan, i.GlutenFree, i.Keto, i.Paleo, i.Halal, i.Kosher
 			FROM RecipeIngredients ri
@@ -503,23 +554,19 @@ app.get('/recipe/:recipeId', async (req, res) => {
 			WHERE ri.RecipeID = @recipeId
 			ORDER BY ri.IngredientNumber
 		`);
-		
-		// Query instructions
 		const instructions = await request.query(`
 			SELECT Instruction
 			FROM Instructions
 			WHERE RecipeID = @recipeId
 			ORDER BY Step
 		`);
-		
-		// Query ratings
 		const ratings = await request.query(`
 			SELECT *
 			FROM Ratings
 			WHERE RecipeID = @recipeId
 		`);
 		
-		// Send results to page
+		// Send results to client
 		res.render('recipe', {
 			recipe: details.recordset[0],
 			ingredients: ingredients.recordset,
@@ -527,14 +574,15 @@ app.get('/recipe/:recipeId', async (req, res) => {
 			ratings: ratings.recordset[0]
 		});
 	} catch (err) {
-		console.error('Error getting recipe details:', err);
-		res.status(500).send('An error occurred while querying the database.');
+		console.error('Error: ', err);
+		res.status(500).send('An error occurred while getting the recipe details.');
 	}
 });
 
 // Substitute ingredients
 app.get('/substitution', async (req, res) => {
 	try {
+		
 		// Connect to database
 		let pool = await sql.connect(config);
 		
@@ -542,20 +590,19 @@ app.get('/substitution', async (req, res) => {
 		const { ingredientId, preference } = req.query;
 		
 		// Query the database
-		const query = `
-		SELECT i1.Name
-		FROM Ingredients i1
-		INNER JOIN Ingredients i2
-		ON i1.RoleInRecipe = i2.RoleInRecipe
-		AND i1.Texture = i2.Texture
-		AND (i1.FlavorProfile = i2.FlavorProfile OR i1.Category = i2.Category)
-		WHERE i2.IngredientID = ${ingredientId}
-		AND (i1.${preference} = 'Yes' OR i1.${preference} = 'Maybe')
-		`;
 		const details = await pool.request()
-			.query(query);
+			.query(`
+				SELECT i1.Name
+				FROM Ingredients i1
+				INNER JOIN Ingredients i2
+				ON i1.RoleInRecipe = i2.RoleInRecipe
+				AND i1.Texture = i2.Texture
+				AND (i1.FlavorProfile = i2.FlavorProfile OR i1.Category = i2.Category)
+				WHERE i2.IngredientID = ${ingredientId}
+				AND (i1.${preference} = 'Yes' OR i1.${preference} = 'Maybe')
+			`);
 		
-		// Send results to page
+		// Send a random matching ingredient to client
 		if (details.recordset.length > 0) {
 			const randomIndex = Math.floor(Math.random() * details.recordset.length);
 			const randomRow = details.recordset[randomIndex];
@@ -564,57 +611,59 @@ app.get('/substitution', async (req, res) => {
 			res.json({ message: "No substitutions found." });
 		}
 	} catch (err) {
-		console.error('Error getting substitution:', err);
-		res.status(500).send('An error occurred while querying the database.');
+		console.error('Error: ', err);
+		res.status(500).send('An error occurred while getting ingredient substitutions.');
 	}
 });
 
 // Get description of category/dietary preference
 app.get('/category-desc', async (req, res) => {
 	try {
+		
 		// Connect to database
 		let pool = await sql.connect(config);
 		
-		// Get parameters
+		// Get the category
 		const { category } = req.query;
 		
 		// Query the database
-		const query = `
-		SELECT Description
-		FROM Categories
-		WHERE Name = '${category}'
-		`;
 		const desc = await pool.request()
-			.query(query);
+			.query(`
+				SELECT Description
+				FROM Categories
+				WHERE Name = '${category}'
+			`);
 		
 		// Send results to page
 		res.json(desc);
 	} catch (err) {
-		console.error('Error getting the category substitution:', err);
-		res.status(500).send('An error occurred while querying the database.');
+		console.error('Error: ', err);
+		res.status(500).send('An error occurred while getting the category description.');
 	}
 });
 
 // Rate a recipe
 app.post('/rate-recipe', async (req, res) => {
-	const { recipeId, stars } = req.body;
-	if (!recipeId || !stars) {
-		return res.status(400).send("Recipe ID and stars are required.");
-	}
-
 	try {
+		
+		// Connect to database
 		let pool = await sql.connect(config);
-		const column = ['One', 'Two', 'Three', 'Four', 'Five'][stars - 1]; // Maps stars to column names
-		const query = `UPDATE Ratings SET ${column} = ${column} + 1 WHERE RecipeID = @RecipeID`;
-
+		
+		// Get parameters
+		const { recipeId, stars } = req.body;
+		const column = ['One', 'Two', 'Three', 'Four', 'Five'][stars - 1];
+		
+		// Update the ratings
 		await pool.request()
 			.input('RecipeID', sql.Int, recipeId)
-			.query(query);
-
-		res.json({ success: true, message: 'Rating updated successfully.' });
+			.query(`
+				UPDATE Ratings
+				SET ${column} = ${column} + 1 WHERE RecipeID = @RecipeID
+			`);
+			res.json({ message: 'Rating updated successfully.' });
 	} catch (err) {
-		console.error('Failed to update rating:', err);
-		res.status(500).send('Failed to update rating.');
+		console.error('Error: ', err);
+		res.status(500).send('An error occured while updating the ratings.');
 	}
 });
 
