@@ -1,21 +1,20 @@
 .input-wrapper {
-    display: inline-block; /* Makes the div inline but block-level */
-    position: relative; /* Keeps the dropdown aligned */
+	display: inline-block;
+	position: relative;
 }
-
 
 .autocomplete-results {
 	position: absolute;
-	top: 100%;  /* Position directly under the input */
+	top: 100%;
 	left: 0;
 	right: 0;
 	border: 1px solid #ccc;
 	border-top: none;
 	z-index: 1000;
 	background-color: white;
-	max-height: 200px;  /* Set a max-height for scroll */
-	overflow-y: auto;  /* Enable scrolling */
-	box-shadow: 0 4px 6px rgba(0,0,0,0.1);  /* Optional: Adds shadow for better visibility */
+	max-height: 200px;
+	overflow-y: auto;
+	box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .autocomplete-results div {
@@ -26,4 +25,68 @@
 
 .autocomplete-results div:hover {
 	background-color: #f0f0f0;
+}
+
+html, body {
+	color: #003000;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: #e8f5e9;
+	font-family: Arial, sans-serif;
+}
+
+.main-container {
+	background-color: #ffffff;
+	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+	width: 90%;
+	max-width: 960px;
+	min-width: 720px;
+	margin: 20px;
+	padding: 20px;
+	box-sizing: border-box;
+	overflow-y: auto;
+	max-height: calc(100vh - 40px);
+}
+
+@media (max-height: 800px) {
+	body {
+		align-items: flex-start;
+	}
+}
+
+.main-container::-webkit-scrollbar {
+	width: 12px;
+}
+
+.main-container::-webkit-scrollbar-track {
+	background: transparent;
+	border-radius: 10px;
+}
+
+.main-container::-webkit-scrollbar-thumb {
+	background-color: darkgrey;
+	border-radius: 10px;
+	border: 3px solid #ffffff;
+}
+
+a {
+	color: #006400;
+	text-decoration: none;
+}
+
+a:hover, a:focus {
+	text-decoration: underline;
+}
+
+.substitution-box {
+	background-color: #fff9c4;
+	border-radius: 10px;
+	padding: 20px;
+	margin: 10px;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
