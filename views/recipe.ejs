@@ -32,7 +32,6 @@
 			<% if (recipe.PubDate) { %><p>Published on <%= new Date(recipe.PubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %> by <u><%= recipe.Username %></u></p><% } %>
 			<img src="<%= recipe.Img %>" alt="<%= recipe.Title %>">
 			<p><%= recipe.TextDesc %></p>
-			
 			<% if (recipe.PrepTime) { %><p><b>Prep Time:</b> <%= recipe.PrepTime >= 60 ? Math.floor(recipe.PrepTime / 60) + ' hours ' : '' %><%= recipe.PrepTime % 60 !== 0 ? recipe.PrepTime % 60 + ' minutes' : '' %></p><% } %>
 			<% if (recipe.CookTime) { %><p><b>Cook Time:</b> <%= recipe.CookTime >= 60 ? Math.floor(recipe.CookTime / 60) + ' hours ' : '' %><%= recipe.CookTime % 60 !== 0 ? recipe.CookTime % 60 + ' minutes' : '' %></p><% } %>
 			<% if (recipe.AdditionalTime) { %><p><b>Additional Time:</b> <%= recipe.AdditionalTime >= 60 ? Math.floor(recipe.AdditionalTime / 60) + ' hours ' : '' %><%= recipe.AdditionalTime % 60 !== 0 ? recipe.AdditionalTime % 60 + ' minutes' : '' %></p><% } %>
@@ -81,28 +80,23 @@
 			</ul>		
 		</div>
 		
-		<!-- Get substitutions -->
+		<!-- JavaScript for getting ingredient substitutions -->
 		<script>
 			document.getElementById('dietaryPreference').addEventListener('change', async function() {
 				const preference = this.value;
 				if (!preference) return;
-				
 				const response = await fetch(`/category-desc?category=${preference}`);
 				const data = await response.json();
 				document.querySelector('#preference-description').textContent = data.recordset[0].Description;
-				
 				document.querySelectorAll('.substitution').forEach(sub => sub.remove());
 				const ingredientList = document.querySelectorAll('#ingredientList li');
-				
 				for (let ingredient of ingredientList) {
 					if (ingredient.getAttribute(`data-${preference}`) == 'Yes' || ingredient.getAttribute(`data-${preference}`) == 'Maybe') {
 						continue;
 					}
-					
 					const ingredientId = ingredient.getAttribute('data-ingredient-id');
 					const response = await fetch(`/substitution?ingredientId=${ingredientId}&preference=${preference}`);
 					const substitutionData = await response.json();
-					
 					const substitutionElement = document.createElement('div');
 					substitutionElement.classList.add('substitution');
 					if (substitutionData.Name) {
@@ -119,6 +113,7 @@
 			});
 		</script>
 		
+		<!-- JavaScript for rating a recipe -->
 		<script>
 			function rateRecipe(recipeId, stars) {
 				fetch('/rate-recipe', {
@@ -131,7 +126,6 @@
 				.then(response => response.json())
 				.then(data => {
 					alert('Thank you for rating!');
-					// Optionally update the UI here to show the new rating count
 				})
 				.then(res => window.location.reload())
 				.catch(error => console.error('Error rating the recipe:', error));

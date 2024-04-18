@@ -9,40 +9,31 @@
 	<div class="main-container">
 		<%- include('partials/navigation') %>
 		
-		<h1>Recipe Builder</h1>
-		
 		<!-- Recipe form -->
+		<h1>Recipe Builder</h1>
 		<form id="recipeForm" action="/save-recipe" method="post">
 			<input type="hidden" name="recipeId" value="<%= recipe ? recipe.RecipeID : '' %>">
-			
 			<label for="title">Title:</label>
 			<input type="text" id="title" name="title" value="<%= recipe ? recipe.Title : '' %>" required>
 			<br><br>
-			
 			<label for="description">Description:</label>
 			<textarea id="description" name="description" required><%= recipe ? recipe.TextDesc : '' %></textarea>
 			<br><br>
-			
 			<label for="image">Image URL:</label>
 			<input type="url" id="image" name="image" value="<%= recipe ? recipe.Img : '' %>">
 			<br><br>
-			
 			<label for="prepTime">Prep Time (minutes):</label>
 			<input type="number" id="prepTime" name="prepTime" value="<%= recipe ? recipe.PrepTime : '' %>" min="0">
 			<br><br>
-			
 			<label for="cookTime">Cook Time (minutes):</label>
 			<input type="number" id="cookTime" name="cookTime" value="<%= recipe ? recipe.CookTime : '' %>" min="0">
 			<br><br>
-			
 			<label for="additionalTime">Additional Time (minutes):</label>
 			<input type="number" id="additionalTime" name="additionalTime" value="<%= recipe ? recipe.AdditionalTime : '' %>" min="0">
 			<br><br>
-			
 			<label for="servings">Servings:</label>
 			<input type="number" id="servings" name="servings" value="<%= recipe ? recipe.Servings : '' %>" min="1">
 			<br><br>
-			
 			<label for="yield">Yield:</label>
 			<input type="text" id="yield" name="yield" value="<%= recipe ? recipe.Yield : '' %>">
 			<br><br>
@@ -124,42 +115,31 @@
 				const instructionsContainer = document.getElementById('instructionsContainer');
 				document.getElementById('addIngredientBtn').addEventListener('click', () => addRow(container, 'ingredientRow', true));
 				document.getElementById('addInstructionBtn').addEventListener('click', () => addRow(instructionsContainer, 'instructionRow', false));
-
-				// Initialize autocomplete for any existing ingredient searches
 				document.querySelectorAll('.ingredientSearch').forEach(input => attachAutocomplete(input));
-
-				// Update remove buttons for existing rows
 				updateRemoveButtons(container, 'ingredientRow', 'removeButton');
 				updateRemoveButtons(instructionsContainer, 'instructionRow', 'removeInstructionBtn');
-
-				// Initialize existing rows (if any) upon page load
 				initializeExistingRows(container, 'ingredientRow', true);
 				initializeExistingRows(instructionsContainer, 'instructionRow', false);
-
+				
 				function addRow(parentContainer, rowClass, attachAutoComplete) {
 					const newRow = document.createElement('div');
 					newRow.innerHTML = document.querySelector('.' + rowClass).innerHTML;
 					newRow.className = rowClass;
 					parentContainer.appendChild(newRow);
-					
-					// Clear the values for the new row
 					newRow.querySelectorAll('input').forEach(input => {
 						if (input.type === 'text' || input.type === 'number') {
-							input.value = ''; // Reset text and number inputs
+							input.value = '';
 						}
 					});
 					newRow.querySelectorAll('textarea').forEach(textarea => {
-						textarea.value = ''; // Reset textareas
+						textarea.value = '';
 					});
-
 					if (attachAutoComplete && newRow.querySelector('.ingredientSearch')) {
 						attachAutocomplete(newRow.querySelector('.ingredientSearch'));
 					}
-
 					updateRemoveButtons(parentContainer, rowClass, newRow.querySelector('.removeButton') ? 'removeButton' : 'removeInstructionBtn');
 				}
-
-
+				
 				function attachAutocomplete(searchInput) {
 					const resultsContainer = document.createElement('div');
 					resultsContainer.className = 'autocomplete-results';
@@ -171,7 +151,7 @@
 						}
 					});
 				}
-
+				
 				function handleSearch(searchInput, resultsContainer) {
 					const searchText = searchInput.value;
 					if (searchText.length > 1) {
@@ -196,7 +176,7 @@
 						resultsContainer.innerHTML = '';
 					}
 				}
-
+				
 				function updateRemoveButtons(parentContainer, rowClass, buttonClass) {
 					const removeButtons = parentContainer.querySelectorAll('.' + buttonClass);
 					removeButtons.forEach(button => {
@@ -204,14 +184,14 @@
 						button.onclick = () => removeRow(button, parentContainer, rowClass, buttonClass);
 					});
 				}
-
+				
 				function removeRow(button, parentContainer, rowClass, buttonClass) {
 					if (parentContainer.querySelectorAll('.' + rowClass).length > 1) {
 						button.closest('.' + rowClass).remove();
 						updateRemoveButtons(parentContainer, rowClass, buttonClass);
 					}
 				}
-
+				
 				function populateFields(row) {
 					const quantity = row.querySelector('.ingredientQuantity').value;
 					const unit = row.querySelector('.ingredientUnit').value;
@@ -219,9 +199,8 @@
 					const combinedInput = row.querySelector('.ingredientText');
 					combinedInput.value = `${quantity} ${unit} ${ingredient}`;
 				}
-
+				
 				function initializeExistingRows(parentContainer, rowClass, attachAutoComplete) {
-					// This function initializes functionality for existing rows when the page is loaded with a recipe
 					const existingRows = parentContainer.querySelectorAll('.' + rowClass);
 					existingRows.forEach(row => {
 						if (attachAutoComplete && row.querySelector('.ingredientSearch')) {
@@ -236,11 +215,9 @@
 		<script>
 			document.addEventListener('DOMContentLoaded', function() {
 				const form = document.getElementById('recipeForm');
-				const recipeId = form.querySelector('input[name="recipeId"]').value; // Check if there's an existing recipe ID
-				
+				const recipeId = form.querySelector('input[name="recipeId"]').value;
 				form.addEventListener('submit', function(event) {
-					event.preventDefault(); // Prevent default form submission
-					
+					event.preventDefault();
 					const formData = new FormData();
 					formData.append('recipeId', recipeId);
 					formData.append('title', document.getElementById('title').value);
@@ -251,8 +228,6 @@
 					formData.append('additionalTime', document.getElementById('additionalTime').value);
 					formData.append('servings', document.getElementById('servings').value);
 					formData.append('yield', document.getElementById('yield').value);
-					
-					// Collect Ingredients
 					const ingredients = [];
 					document.querySelectorAll('.ingredientRow').forEach((row, index) => {
 						const ingredientData = {
@@ -264,19 +239,13 @@
 						ingredients.push(ingredientData);
 					});
 					formData.append('ingredients', JSON.stringify(ingredients));
-					
-					// Collect Instructions
 					const instructions = [];
 					document.querySelectorAll('.instructionRow').forEach((row, index) => {
 						const instructionText = row.querySelector('.instructionText').value;
 						instructions.push(instructionText);
 					});
 					formData.append('instructions', JSON.stringify(instructions));
-					
-					// Determine the correct URL based on whether it's an update or a new creation
 					const submitUrl = recipeId ? '/update-recipe' : '/save-recipe';
-					
-					// Use fetch API to submit the form data
 					fetch(submitUrl, {
 						method: 'POST',
 						body: formData
